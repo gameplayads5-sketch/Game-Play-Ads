@@ -1,0 +1,38 @@
+<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🏆 Game Play Ads</title><style>
+*{box-sizing:border-box}body{margin:0;background:#eef3f7;color:#182233;font-family:Arial,"Noto Sans Bengali",sans-serif}
+.header{background:#5b8bb2;color:#fff;text-align:center;padding:26px 12px}.header h1{margin:0;font-size:30px}.header p{margin:7px 0;font-size:18px}
+.container{max-width:700px;margin:18px auto;padding:0 14px}.loading{text-align:center;padding:35px;color:#667085}.empty{background:#fff;border-radius:20px;padding:55px 15px;text-align:center;font-size:22px}
+.post{background:#fff;border-radius:18px;margin-bottom:18px;overflow:hidden;box-shadow:0 3px 15px #0001}.post img{display:block;width:100%;max-height:330px;object-fit:cover}.content{padding:18px}
+.title{font-size:24px;font-weight:bold;margin-bottom:10px}.text{font-size:17px;line-height:1.65;white-space:pre-wrap;margin-bottom:14px}
+.link{display:block;background:#087cf5;color:#fff;text-decoration:none;text-align:center;padding:13px;border-radius:11px;font-weight:bold}.date{font-size:13px;color:#7a8491;margin-top:12px}.error{background:#fde0e3;color:#8b1e2d;border-radius:12px;padding:14px;text-align:center}.review{margin-top:18px;padding-top:15px;border-top:1px solid #e8edf3}.stars{display:flex;gap:4px;margin:8px 0}.star{font-size:30px;color:#cbd2dc;cursor:pointer;user-select:none}.star.on{color:#ffb400}.review input,.review textarea{width:100%;padding:12px;border:1px solid #dbe2ea;border-radius:11px;font-size:15px;margin:6px 0}.review textarea{min-height:75px;resize:vertical}.review button{width:100%;border:0;background:#087cf5;color:#fff;padding:11px;border-radius:10px;font-weight:bold}.comment{background:#f7f9fc;border-radius:12px;padding:10px;margin-top:8px}.comment b{font-size:14px}.comment .starsmini{color:#ffb400;font-size:15px}.comment p{margin:4px 0;line-height:1.45;font-size:14px}.reviewtitle{font-weight:bold;font-size:18px}
+</style></head><body><div class="header"><h1>🏆 Game Play Ads</h1><p>নতুন পোস্ট ও অফার</p></div><div class="container"><div id="status" class="loading">📡 পোস্ট লোড হচ্ছে...</div><div id="posts"></div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyC33MnqbprRYlgdKRbCv0749ZOgyMqufcw",authDomain:"coinplay-9e67f.firebaseapp.com",databaseURL:"https://coinplay-9e67f-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"coinplay-9e67f",storageBucket:"coinplay-9e67f.appspot.com",messagingSenderId:"1096066059726",appId:"1:1096066059726:web:c1f4320b42df37dd626f9f"};
+firebase.initializeApp(firebaseConfig);const db=firebase.database(),auth=firebase.auth();
+let currentUid=localStorage.getItem('hehe555_uid')||'';
+auth.signInAnonymously().then(r=>{currentUid=r.user.uid;localStorage.setItem('hehe555_uid',currentUid)}).catch(()=>{});
+let selectedRatings={};
+function esc(x){return String(x??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[m]))}
+function starsHTML(id,val=0){let h='';for(let i=1;i<=5;i++)h+=`<span class="star ${i<=val?'on':''}" onclick="setRating('${id}',${i})">★</span>`;return h}
+function setRating(id,n){selectedRatings[id]=n;const e=document.getElementById('stars-'+id);if(e)e.innerHTML=starsHTML(id,n);const note=document.getElementById('rating-note-'+id);if(note)note.textContent='আপনি '+n+' ⭐ নির্বাচন করেছেন';}
+function renderReviews(id){
+ const box=document.getElementById('reviews-'+id);if(!box)return;
+ db.ref('hehe555_comments/'+id).limitToLast(30).on('value',s=>{const d=s.val()||{};const a=Object.values(d).sort((x,y)=>(x.createdAt||0)-(y.createdAt||0));
+ let total=0,count=0;a.forEach(x=>{if(x.rating){total+=Number(x.rating);count++}});const avg=count?(total/count).toFixed(1):'0.0';
+ let h=`<div class="reviewtitle">⭐ রেটিং ${avg} / 5 ${count?`(${count}টি রিভিউ)`:''}</div><div id="stars-${id}" class="stars">${starsHTML(id,selectedRatings[id]||0)}</div><div id="rating-note-${id}" style="font-size:14px;color:#ff9800;font-weight:bold;min-height:20px">${selectedRatings[id] ? ('আপনি '+selectedRatings[id]+' ⭐ নির্বাচন করেছেন') : ''}</div><input id="name-${id}" placeholder="আপনার নাম (ঐচ্ছিক)"><textarea id="comment-${id}" placeholder="আপনার মন্তব্য লিখুন..."></textarea><button onclick="sendReview('${id}')">💬 মন্তব্য ও রেটিং দিন</button>`;
+ a.slice(-8).reverse().forEach(x=>{h+=`<div class="comment"><b>${esc(x.name||'একজন ব্যবহারকারী')}</b> <span class="starsmini">${'★'.repeat(Number(x.rating||0))}${'☆'.repeat(5-Number(x.rating||0))}</span><p>${esc(x.comment||'')}</p></div>`});box.innerHTML=h;
+ });
+}
+async function sendReview(id){
+ const rating=selectedRatings[id]||0, name=(document.getElementById('name-'+id).value||'').trim(), comment=(document.getElementById('comment-'+id).value||'').trim();
+ if(!rating)return alert('⭐ আগে ১ থেকে ৫ স্টার দিন।');if(!comment)return alert('💬 আপনার মন্তব্য লিখুন।');
+ const uid=currentUid||('guest_'+Math.random().toString(36).slice(2));
+ await db.ref('hehe555_comments/'+id+'/'+uid).set({name:name||'একজন ব্যবহারকারী',comment,rating,createdAt:firebase.database.ServerValue.TIMESTAMP});
+ selectedRatings[id]=0;alert('✅ আপনার রেটিং ও মন্তব্য যোগ হয়েছে।');
+}
+function load(){db.ref('hehe555_posts').on('value',s=>{const box=document.getElementById('posts'),status=document.getElementById('status');box.innerHTML='';const d=s.val()||{},a=Object.entries(d).sort((x,y)=>(y.createdAt||0)-(x.createdAt||0));if(!a.length){status.textContent='📭 এখনো কোনো পোস্ট দেওয়া হয়নি।';return}status.textContent='';a.forEach(([id,p])=>{const c=document.createElement('article');c.className='post';let im=p.image?`<img src="${p.image}">`:'';c.innerHTML=im+`<div class="content"><div class="title">${esc(p.title||'')}</div><div class="text">${esc(p.text||'')}</div><a class="link" href="${/^https?:\/\//i.test(p.link||'')?p.link:'https://'+(p.link||'')}" onclick="openExternal(event,this.href)">🔗 বিস্তারিত দেখতে ক্লিক করুন</a><div class="date">${p.createdAt?new Date(p.createdAt).toLocaleString('bn-BD'):''}</div><div class="review" id="reviews-${id}"></div></div>`;c.id='postcard-'+id;box.appendChild(c);renderReviews(id)});});}
+function openExternal(e,url){e.preventDefault();try{location.href='intent://'+url.replace(/^https?:\/\//i,'')+'#Intent;scheme=https;action=android.intent.action.VIEW;end'}catch(_){location.href=url}}
+load();
+</script></body></html>
