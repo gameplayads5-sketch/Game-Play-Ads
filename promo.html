@@ -6,9 +6,9 @@
 <meta charset="UTF-8">
 
 <meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+      content="width=device-width, initial-scale=1">
 
-<title>Game Play Ads — Play • Earn • Win</title>
+<title>Game Play Ads – Play • Earn • Win</title>
 
 
 <!-- =========================
@@ -40,7 +40,7 @@
       content="630">
 
 <meta property="og:image:alt"
-      content="Game Play Ads — Play • Earn • Win">
+      content="Game Play Ads">
 
 <meta property="og:url"
       content="https://gameplayads5-sketch.github.io/Game-Play-Ads/promo.html">
@@ -50,7 +50,7 @@
 
 
 <!-- =========================
-     TWITTER / X
+     TWITTER / SOCIAL PREVIEW
      ========================= -->
 
 <meta name="twitter:card"
@@ -74,32 +74,122 @@
       content="Game Play Ads — মজার গেম খেলুন এবং রিওয়ার্ড পাওয়ার সুযোগ নিন।">
 
 
+<!-- =========================
+     FAVICON
+     ========================= -->
+
+<link rel="icon"
+      type="image/png"
+      href="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/refs/heads/main/photo.png">
+
+
 <style>
 
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
 
-html,
 body {
 
-    width: 100%;
-    min-height: 100%;
-
-    background: #000;
+    background: #f2f3f5;
 
     font-family:
-        Arial,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
         "Noto Sans Bengali",
+        Arial,
         sans-serif;
 
 }
 
-body {
+.container {
+
+    max-width: 600px;
+
+    margin: auto;
+
+    background: #ffffff;
+
+    min-height: 100vh;
+
+}
+
+
+/* =========================
+   HEADER / APP INFO
+   ========================= */
+
+.header {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 16px;
+
+}
+
+.app-icon {
+
+    width: 80px;
+
+    height: 80px;
+
+    object-fit: cover;
+
+    border-radius: 18px;
+
+}
+
+.app-title {
+
+    font-size: 23px;
+
+    font-weight: 700;
+
+}
+
+.subtitle {
+
+    color: #555;
+
+    font-size: 14px;
+
+    margin-top: 4px;
+
+}
+
+
+/* =========================
+   STATS
+   ========================= */
+
+.stats {
+
+    display: flex;
+
+    justify-content: space-around;
 
     text-align: center;
+
+    padding: 13px 0;
+
+    border-top: 1px solid #eee;
+
+    border-bottom: 1px solid #eee;
+
+}
+
+.stats div {
+
+    font-size: 14px;
+
+    line-height: 1.5;
 
 }
 
@@ -112,20 +202,6 @@ body {
 
     width: 100%;
 
-    max-width: 1200px;
-
-    margin: 0 auto;
-
-}
-
-.poster a {
-
-    display: block;
-
-    width: 100%;
-
-    text-decoration: none;
-
 }
 
 .poster img {
@@ -136,23 +212,6 @@ body {
 
     height: auto;
 
-    border: 0;
-
-}
-
-
-/* =========================
-   BUTTON AREA
-   ========================= */
-
-.button-area {
-
-    width: 100%;
-
-    padding: 18px 10px 30px;
-
-    background: #000;
-
 }
 
 
@@ -160,42 +219,27 @@ body {
    VISIT BUTTON
    ========================= */
 
-.visit-button {
+.visit-btn {
 
     display: block;
 
-    width: 95%;
+    margin: 16px;
 
-    max-width: 600px;
+    padding: 15px;
 
-    margin: 0 auto;
-
-    padding: 16px 20px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #ffd000,
-            #ff7b00
-        );
+    background: #ffb800;
 
     color: #000;
 
-    font-size: 22px;
-
-    font-weight: bold;
+    text-align: center;
 
     text-decoration: none;
 
-    border-radius: 50px;
+    border-radius: 12px;
 
-    box-shadow:
+    font-size: 19px;
 
-        0 0 15px
-        rgba(255,190,0,0.9),
-
-        0 0 30px
-        rgba(255,150,0,0.5);
+    font-weight: bold;
 
 }
 
@@ -204,15 +248,71 @@ body {
    INFORMATION
    ========================= */
 
-.info {
+.section {
 
-    color: #ffffff;
+    padding: 16px;
 
-    font-size: 14px;
+}
 
-    margin-top: 14px;
+.section h3 {
 
-    line-height: 1.7;
+    margin-bottom: 10px;
+
+    font-size: 20px;
+
+}
+
+.section p {
+
+    color: #444;
+
+    font-size: 15px;
+
+    line-height: 1.8;
+
+}
+
+
+/* =========================
+   ENTER BUTTON
+   ========================= */
+
+.download-btn {
+
+    display: block;
+
+    background: #1877f2;
+
+    color: #fff;
+
+    text-align: center;
+
+    padding: 16px;
+
+    border-radius: 12px;
+
+    text-decoration: none;
+
+    font-size: 19px;
+
+    font-weight: bold;
+
+}
+
+
+/* =========================
+   FOOTER
+   ========================= */
+
+.footer {
+
+    text-align: center;
+
+    font-size: 13px;
+
+    color: #888;
+
+    padding: 10px 0 25px;
 
 }
 
@@ -223,11 +323,15 @@ body {
 
 @media (max-width: 600px) {
 
-    .visit-button {
+    .app-title {
 
-        font-size: 20px;
+        font-size: 21px;
 
-        padding: 14px 15px;
+    }
+
+    .subtitle {
+
+        font-size: 13px;
 
     }
 
@@ -241,8 +345,61 @@ body {
 <body>
 
 
+<div class="container">
+
+
 <!-- =========================
-     MAIN POSTER
+     APP HEADER
+     ========================= -->
+
+<div class="header">
+
+    <img
+        class="app-icon"
+        src="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/refs/heads/main/photo.png"
+        alt="Game Play Ads">
+
+    <div>
+
+        <div class="app-title">
+            Game Play Ads
+        </div>
+
+        <div class="subtitle">
+            Play • Earn • Win
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     STATS
+     ========================= -->
+
+<div class="stats">
+
+    <div>
+        🎮<br>
+        মজার গেম
+    </div>
+
+    <div>
+        🪙<br>
+        রিওয়ার্ড
+    </div>
+
+    <div>
+        🛡️<br>
+        নিরাপদ
+    </div>
+
+</div>
+
+
+<!-- =========================
+     POSTER
      ========================= -->
 
 <div class="poster">
@@ -251,9 +408,7 @@ body {
 
         <img
             src="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/refs/heads/main/photo.png"
-            alt="Game Play Ads — Play • Earn • Win"
-            width="1200"
-            height="630">
+            alt="Game Play Ads - Play Earn Win">
 
     </a>
 
@@ -264,29 +419,71 @@ body {
      VISIT BUTTON
      ========================= -->
 
-<div class="button-area">
+<a
+    class="visit-btn"
+    href="https://gameplayads5-sketch.github.io/Game-Play-Ads/index.html">
 
-    <a
-        class="visit-button"
-        href="https://gameplayads5-sketch.github.io/Game-Play-Ads/index.html">
+    🎮 এখনই Game Play Ads ভিজিট করুন
 
-        🎮 এখনই Game Play Ads ভিজিট করুন
-
-    </a>
+</a>
 
 
-    <div class="info">
+<!-- =========================
+     ABOUT
+     ========================= -->
 
-        👆 ছবিতে ক্লিক করুন অথবা উপরের বাটনে চাপ দিন
+<div class="section">
 
-        <br>
+    <h3>
+        Game Play Ads সম্পর্কে
+    </h3>
 
-        Game Play Ads • Play • Earn • Win
+    <p>
 
-    </div>
+        Game Play Ads হলো মজার গেম খেলা
+        এবং রিওয়ার্ড পাওয়ার সুযোগের একটি
+        অনলাইন প্ল্যাটফর্ম।
+
+        <br><br>
+
+        বিভিন্ন ধরনের মজার গেম খেলুন,
+        প্ল্যাটফর্মটি ভিজিট করুন এবং
+        আপনার পছন্দের গেম উপভোগ করুন।
+
+    </p>
 
 </div>
 
+
+<!-- =========================
+     ENTER BUTTON
+     ========================= -->
+
+<div class="section">
+
+    <a
+        class="download-btn"
+        href="https://gameplayads5-sketch.github.io/Game-Play-Ads/index.html">
+
+        🚀 Game Play Ads খুলুন
+
+    </a>
+
+</div>
+
+
+<!-- =========================
+     FOOTER
+     ========================= -->
+
+<div class="footer">
+
+    © 2026 Game Play Ads
+
+</div>
+
+
+</div>
 
 </body>
 
