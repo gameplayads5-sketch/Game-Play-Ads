@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Game Play Ads - Play • Earn • Win</title>
+
+    <!-- Facebook / WhatsApp Preview -->
+    <meta property="og:title"
+          content="Game Play Ads - Play • Earn • Win">
+
+    <meta property="og:description"
+          content="মজার গেম খেলুন এবং রিওয়ার্ড পাওয়ার সুযোগ নিন। আজই Game Play Ads ভিজিট করে দেখুন।">
+
+    <meta property="og:image"
+          content="https://gameplayads5-sketch.github.io/Game-Play-Ads/gaming.png?v=2">
+
+    <meta property="og:image:width"
+          content="1080">
+
+    <meta property="og:image:height"
+          content="1080">
+
+    <meta property="og:type"
+          content="website">
+
+    <meta property="og:url"
+          content="https://gameplayads5-sketch.github.io/Game-Play-Ads/promo.html">
+
+    <!-- WhatsApp / অন্যান্য Preview -->
+    <meta name="description"
+          content="Game Play Ads - Play • Earn • Win">
+
+    <!-- Twitter Preview -->
+    <meta name="twitter:card"
+          content="summary_large_image">
+
+    <meta name="twitter:title"
+          content="Game Play Ads - Play • Earn • Win">
+
+    <meta name="twitter:description"
+          content="মজার গেম খেলুন এবং রিওয়ার্ড পাওয়ার সুযোগ নিন।">
+
+    <meta name="twitter:image"
+          content="https://gameplayads5-sketch.github.io/Game-Play-Ads/gaming.png?v=2">
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            background: #000;
+        }
+
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .poster {
+            width: 100%;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        .poster a {
+            display: block;
+            width: 100%;
+        }
+
+        .poster img {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        .button-area {
+            background: #000;
+            padding: 15px 10px 25px;
+        }
+
+        .visit-button {
+            display: inline-block;
+            width: 95%;
+            max-width: 600px;
+            padding: 16px 20px;
+
+            background: linear-gradient(
+                135deg,
+                #ffd000,
+                #ff7b00
+            );
+
+            color: #000;
+            font-size: 24px;
+            font-weight: bold;
+
+            text-decoration: none;
+            border-radius: 50px;
+
+            box-shadow:
+                0 0 15px rgba(255, 190, 0, 0.9),
+                0 0 30px rgba(255, 150, 0, 0.5);
+        }
+
+        .countdown {
+            color: #fff;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+    </style>
+
+
+    <script>
+
+        // মূল Game Play Ads পেজ
+        const TARGET_URL =
+        "https://gameplayads5-sketch.github.io/Game-Play-Ads/index.html";
+
+
+        // ৫ সেকেন্ডের কাউন্টডাউন
+        let seconds = 5;
+
+
+        function startCountdown() {
+
+            const counter =
+                document.getElementById("counter");
+
+            if (seconds > 0) {
+
+                counter.innerHTML =
+                    seconds +
+                    " সেকেন্ড পর Game Play Ads খুলবে...";
+
+                seconds--;
+
+                setTimeout(startCountdown, 1000);
+
+            } else {
+
+                window.location.replace(TARGET_URL);
+
+            }
+        }
+
+
+        window.addEventListener(
+            "load",
+            startCountdown
+        );
+
+    </script>
+
+</head>
+
+
+<body>
+
+
+    <!-- পোস্টার -->
+
+    <div class="poster">
+
+        <a href="https://gameplayads5-sketch.github.io/Game-Play-Ads/index.html">
+
+            <img
+                src="https://gameplayads5-sketch.github.io/Game-Play-Ads/gaming.png?v=2"
+                alt="Game Play Ads"
+                width="1080"
+                height="1080">
+
+        </a>
+
+    </div>
+
+
+    <!-- ভিজিট বাটন -->
+
+    <div class="button-area">
+
+        <a
+            class="visit-button"
+            href="https://gameplayads5-sketch.github.io/Game-Play-Ads/index.html">
+
+            🎮 এখনই ভিজিট করুন
+
+        </a>
+
+
+        <div
+            id="counter"
+            class="countdown">
+
+            Game Play Ads লোড হচ্ছে...
+
+        </div>
+
+    </div>
+
+
+</body>
+</html>
