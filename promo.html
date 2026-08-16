@@ -3,48 +3,6 @@
 
 <head>
 
-<meta charset="UTF-8">
-
-<title>Game Play Ads - Play • Earn • Win</title>
-
-<meta name="description"
-content="Game Play Ads - Play • Earn • Win">
-
-<meta property="og:title"
-content="Game Play Ads - Play • Earn • Win">
-
-<meta property="og:description"
-content="মজার গেম খেলুন এবং রিওয়ার্ড পাওয়ার সুযোগ নিন। আজই ভিজিট করে দেখুন।">
-
-<meta property="og:type"
-content="website">
-
-<meta property="og:url"
-content="https://gameplayads5-sketch.github.io/Game-Play-Ads/promo.html">
-
-<meta property="og:image"
-content="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/main/gaming.png">
-
-<meta property="og:image:secure_url"
-content="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/main/gaming.png">
-
-<meta property="og:image:type"
-content="image/png">
-
-<meta property="og:image:width"
-content="1080">
-
-<meta property="og:image:height"
-content="1080">
-
-<meta property="og:image:alt"
-content="Game Play Ads">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-</head>
-
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -52,10 +10,7 @@ content="width=device-width, initial-scale=1.0">
 
     <title>Game Play Ads - Play • Earn • Win</title>
 
-
-    <!-- ========================= -->
-    <!-- Facebook / WhatsApp Preview -->
-    <!-- ========================= -->
+    <!-- Facebook / WhatsApp / Messenger Preview -->
 
     <meta property="og:title"
           content="Game Play Ads - Play • Earn • Win">
@@ -63,8 +18,20 @@ content="width=device-width, initial-scale=1.0">
     <meta property="og:description"
           content="মজার গেম খেলুন এবং রিওয়ার্ড পাওয়ার সুযোগ নিন। আজই Game Play Ads ভিজিট করে দেখুন।">
 
+    <meta property="og:type"
+          content="website">
+
+    <meta property="og:url"
+          content="https://gameplayads5-sketch.github.io/Game-Play-Ads/promo.html">
+
     <meta property="og:image"
-          content="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/refs/heads/main/gaming.png">
+          content="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/main/gaming.png">
+
+    <meta property="og:image:secure_url"
+          content="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/main/gaming.png">
+
+    <meta property="og:image:type"
+          content="image/png">
 
     <meta property="og:image:width"
           content="1080">
@@ -72,22 +39,17 @@ content="width=device-width, initial-scale=1.0">
     <meta property="og:image:height"
           content="1080">
 
-    <meta property="og:type"
-          content="website">
+    <meta property="og:image:alt"
+          content="Game Play Ads">
 
-    <meta property="og:url"
-          content="https://gameplayads5-sketch.github.io/Game-Play-Ads/promo.html">
-
-
-    <!-- সাধারণ Description -->
+    <!-- সাধারণ Browser / Search Description -->
 
     <meta name="description"
           content="Game Play Ads - Play • Earn • Win">
 
+    <meta name="theme-color"
+          content="#000000">
 
-    <!-- ========================= -->
-    <!-- CSS -->
-    <!-- ========================= -->
 
     <style>
 
@@ -97,7 +59,6 @@ content="width=device-width, initial-scale=1.0">
             box-sizing: border-box;
         }
 
-
         html,
         body {
 
@@ -106,10 +67,12 @@ content="width=device-width, initial-scale=1.0">
 
             background: #000;
 
-            font-family: Arial, sans-serif;
+            font-family:
+                Arial,
+                "Noto Sans Bengali",
+                sans-serif;
 
         }
-
 
         body {
 
@@ -139,6 +102,8 @@ content="width=device-width, initial-scale=1.0">
 
             width: 100%;
 
+            text-decoration: none;
+
         }
 
 
@@ -150,9 +115,7 @@ content="width=device-width, initial-scale=1.0">
 
             height: auto;
 
-            max-width: 1080px;
-
-            margin: 0 auto;
+            border: 0;
 
         }
 
@@ -165,7 +128,7 @@ content="width=device-width, initial-scale=1.0">
 
             width: 100%;
 
-            padding: 15px 10px 25px;
+            padding: 18px 10px 30px;
 
             background: #000;
 
@@ -178,23 +141,26 @@ content="width=device-width, initial-scale=1.0">
 
         .visit-button {
 
-            display: inline-block;
+            display: block;
 
             width: 95%;
 
             max-width: 600px;
 
+            margin: 0 auto;
+
             padding: 16px 20px;
 
-            background: linear-gradient(
-                135deg,
-                #ffd000,
-                #ff7b00
-            );
+            background:
+                linear-gradient(
+                    135deg,
+                    #ffd000,
+                    #ff7b00
+                );
 
             color: #000;
 
-            font-size: 24px;
+            font-size: 23px;
 
             font-weight: bold;
 
@@ -203,85 +169,47 @@ content="width=device-width, initial-scale=1.0">
             border-radius: 50px;
 
             box-shadow:
-
                 0 0 15px
-                rgba(255, 190, 0, 0.9),
+                rgba(255,190,0,0.9),
 
                 0 0 30px
-                rgba(255, 150, 0, 0.5);
+                rgba(255,150,0,0.5);
+
+        }
+
+
+        /* মোবাইলের জন্য */
+
+        @media (max-width: 600px) {
+
+            .visit-button {
+
+                font-size: 20px;
+
+                padding: 14px 15px;
+
+            }
 
         }
 
 
         /* =========================
-           Countdown
+           Small Text
            ========================= */
 
-        .countdown {
+        .info {
 
-            color: #fff;
+            color: #ffffff;
 
             font-size: 14px;
 
-            margin-top: 12px;
+            margin-top: 14px;
+
+            line-height: 1.6;
 
         }
 
     </style>
-
-
-    <!-- ========================= -->
-    <!-- Auto Redirect -->
-    <!-- ========================= -->
-
-    <script>
-
-        const TARGET_URL =
-        "https://gameplayads5-sketch.github.io/Game-Play-Ads/index.html";
-
-
-        let seconds = 5;
-
-
-        function countdown() {
-
-            const counter =
-            document.getElementById("counter");
-
-
-            if (seconds > 0) {
-
-                counter.innerHTML =
-                seconds +
-                " সেকেন্ড পর Game Play Ads খুলবে...";
-
-
-                seconds--;
-
-
-                setTimeout(
-                    countdown,
-                    1000
-                );
-
-            }
-
-            else {
-
-                window.location.href =
-                TARGET_URL;
-
-            }
-
-        }
-
-
-        window.addEventListener(
-            "load",
-            countdown
-        );
-
-    </script>
 
 </head>
 
@@ -289,17 +217,17 @@ content="width=device-width, initial-scale=1.0">
 <body>
 
 
-    <!-- ========================= -->
-    <!-- Main Poster -->
-    <!-- ========================= -->
+    <!-- =========================
+         MAIN POSTER
+         ========================= -->
 
     <div class="poster">
 
         <a href="https://gameplayads5-sketch.github.io/Game-Play-Ads/index.html">
 
             <img
-                src="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/refs/heads/main/gaming.png"
-                alt="Game Play Ads"
+                src="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/main/gaming.png"
+                alt="Game Play Ads - Play Earn Win"
                 width="1080"
                 height="1080">
 
@@ -309,9 +237,9 @@ content="width=device-width, initial-scale=1.0">
 
 
 
-    <!-- ========================= -->
-    <!-- Visit Button -->
-    <!-- ========================= -->
+    <!-- =========================
+         VISIT BUTTON
+         ========================= -->
 
     <div class="button-area">
 
@@ -324,11 +252,13 @@ content="width=device-width, initial-scale=1.0">
         </a>
 
 
-        <div
-            id="counter"
-            class="countdown">
+        <div class="info">
 
-            Game Play Ads লোড হচ্ছে...
+            👆 ছবিতে ক্লিক করুন অথবা উপরের বাটনে চাপ দিন
+
+            <br>
+
+            Game Play Ads • Play • Earn • Win
 
         </div>
 
