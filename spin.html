@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1">
+
+<title>🎡 Lucky Spin | Game Play Ads</title>
+
+<meta property="og:type" content="website">
+
+<meta property="og:title"
+      content="🎡 আপনার জন্য বিশেষ Spin Offer">
+
+<meta property="og:description"
+      content="Spin করুন এবং আপনার বিশেষ রেজাল্ট দেখুন!">
+
+<meta property="og:image"
+      content="https://raw.githubusercontent.com/gameplayads5-sketch/Game-Play-Ads/refs/heads/main/image%20F.png">
+
+<meta property="og:url"
+      content="https://gameplayads5-sketch.github.io/Game-Play-Ads/spin.html">
+
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+html,
+body{
+  margin:0;
+  padding:0;
+  width:100%;
+  min-height:100%;
+}
+
+body{
+
+  font-family:
+    Arial,
+    "Noto Sans Bengali",
+    sans-serif;
+
+  background:
+    radial-gradient(
+      circle at top,
+      #7c3aed,
+      #312e81 45%,
+      #0f172a
+    );
+
+  color:white;
+
+  min-height:100vh;
+
+  display:flex;
+
+  justify-content:center;
+
+  align-items:center;
+
+  padding:18px;
+
+}
+
+.container{
+
+  width:100%;
+
+  max-width:500px;
+
+  text-align:center;
+
+}
+
+.logo{
+
+  font-size:23px;
+
+  font-weight:bold;
+
+  margin-bottom:5px;
+
+}
+
+.subtitle{
+
+  font-size:13px;
+
+  opacity:.85;
+
+  margin-bottom:18px;
+
+}
+
+
+/* ================= CARD ================= */
+
+.card{
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff18,
+      #ffffff0a
+    );
+
+  border:1px solid #ffffff25;
+
+  border-radius:25px;
+
+  padding:20px 15px 25px;
+
+  box-shadow:
+    0 20px 60px #0007;
+
+  backdrop-filter:blur(12px);
+
+}
+
+
+/* ================= TITLE ================= */
+
+.title{
+
+  font-size:21px;
+
+  font-weight:bold;
+
+  margin-bottom:5px;
+
+}
+
+.description{
+
+  font-size:13px;
+
+  opacity:.8;
+
+  line-height:1.6;
+
+  margin-bottom:14px;
+
+}
+
+
+/* ================= WHEEL ================= */
+
+.wheelArea{
+
+  position:relative;
+
+  width:min(88vw,360px);
+
+  height:min(88vw,360px);
+
+  margin:8px auto 20px;
+
+}
+
+
+/* POINTER */
+
+.pointer{
+
+  position:absolute;
+
+  top:-7px;
+
+  left:50%;
+
+  transform:translateX(-50%);
+
+  z-index:10;
+
+  width:0;
+
+  height:0;
+
+  border-left:16px solid transparent;
+
+  border-right:16px solid transparent;
+
+  border-top:0;
+
+  border-bottom:32px solid #facc15;
+
+  filter:
+    drop-shadow(0 3px 4px #0008);
+
+}
+
+
+/* WHEEL */
+
+.wheel{
+
+  width:100%;
+
+  height:100%;
+
+  border-radius:50%;
+
+  border:10px solid white;
+
+  box-shadow:
+    0 8px 25px #0008,
+    inset 0 0 0 3px #ffffff55;
+
+  position:relative;
+
+  overflow:hidden;
+
+  transition:
+    transform 5s
+    cubic-bezier(.12,.65,.12,1);
+
+  background:
+    conic-gradient(
+
+      #ef4444 0deg 45deg,
+
+      #2563eb 45deg 90deg,
+
+      #16a34a 90deg 135deg,
+
+      #f97316 135deg 180deg,
+
+      #9333ea 180deg 225deg,
+
+      #0891b2 225deg 270deg,
+
+      #dc2626 270deg 315deg,
+
+      #7c3aed 315deg 360deg
+
+    );
+
+}
+
+
+/* WHEEL TEXT */
+
+.wheelText{
+
+  position:absolute;
+
+  inset:0;
+
+  pointer-events:none;
+
+}
+
+
+.wheelText span{
+
+  position:absolute;
+
+  left:50%;
+
+  top:50%;
+
+  width:50%;
+
+  height:50%;
+
+  transform-origin:0 0;
+
+  font-size:16px;
+
+  font-weight:bold;
+
+  text-shadow:
+    1px 1px 2px #0008;
+
+}
+
+
+/*
+ * 8 segment labels
+ */
+
+.t1{
+  transform:
+    rotate(-67.5deg)
+    translate(5px,-2px);
+}
+
+.t2{
+  transform:
+    rotate(-22.5deg)
+    translate(5px,-2px);
+}
+
+.t3{
+  transform:
+    rotate(22.5deg)
+    translate(5px,-2px);
+}
+
+.t4{
+  transform:
+    rotate(67.5deg)
+    translate(5px,-2px);
+}
+
+.t5{
+  transform:
+    rotate(112.5deg)
+    translate(5px,-2px);
+}
+
+.t6{
+  transform:
+    rotate(157.5deg)
+    translate(5px,-2px);
+}
+
+.t7{
+  transform:
+    rotate(202.5deg)
+    translate(5px,-2px);
+}
+
+.t8{
+  transform:
+    rotate(247.5deg)
+    translate(5px,-2px);
+}
+
+
+/* CENTER */
+
+.center{
+
+  position:absolute;
+
+  left:50%;
+
+  top:50%;
+
+  transform:
+    translate(-50%,-50%);
+
+  width:70px;
+
+  height:70px;
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle,
+      #fff,
+      #e5e7eb
+    );
+
+  border:5px solid #facc15;
+
+  box-shadow:
+    0 3px 10px #0008;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  color:#312e81;
+
+  font-weight:bold;
+
+  font-size:13px;
+
+  z-index:5;
+
+}
+
+
+/* ================= BUTTON ================= */
+
+.spinBtn{
+
+  width:100%;
+
+  max-width:320px;
+
+  border:0;
+
+  border-radius:15px;
+
+  padding:15px;
+
+  font-size:18px;
+
+  font-weight:bold;
+
+  color:white;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f59e0b,
+      #ef4444
+    );
+
+  box-shadow:
+    0 7px 20px #0005;
+
+  cursor:pointer;
+
+  transition:.2s;
+
+}
+
+.spinBtn:active{
+
+  transform:scale(.96);
+
+}
+
+.spinBtn:disabled{
+
+  opacity:.6;
+
+  cursor:not-allowed;
+
+}
+
+
+/* ================= RESULT ================= */
+
+.result{
+
+  display:none;
+
+  animation:
+    resultIn .5s ease;
+
+}
+
+@keyframes resultIn{
+
+  from{
+
+    opacity:0;
+
+    transform:scale(.75);
+
+  }
+
+  to{
+
+    opacity:1;
+
+    transform:scale(1);
+
+  }
+
+}
+
+.resultIcon{
+
+  font-size:65px;
+
+}
+
+.resultTitle{
+
+  font-size:27px;
+
+  font-weight:bold;
+
+  margin:5px 0;
+
+}
+
+.resultAmount{
+
+  font-size:30px;
+
+  font-weight:bold;
+
+  margin:10px 0;
+
+  color:#facc15;
+
+}
+
+.resultText{
+
+  font-size:14px;
+
+  line-height:1.7;
+
+  opacity:.9;
+
+}
+
+.openBtn{
+
+  width:100%;
+
+  max-width:320px;
+
+  margin-top:18px;
+
+  border:0;
+
+  border-radius:14px;
+
+  padding:14px;
+
+  background:white;
+
+  color:#312e81;
+
+  font-size:16px;
+
+  font-weight:bold;
+
+  cursor:pointer;
+
+}
+
+
+/* ================= LOADING ================= */
+
+.loading{
+
+  display:none;
+
+  margin-top:12px;
+
+  font-size:12px;
+
+  opacity:.8;
+
+}
+
+
+/* ================= FOOTER ================= */
+
+.footer{
+
+  margin-top:16px;
+
+  font-size:10px;
+
+  opacity:.45;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+  <div class="logo">
+    🏆 Game Play Ads
+  </div>
+
+  <div class="subtitle">
+    🎁 বিশেষ Spin Offer
+  </div>
+
+
+  <div class="card">
+
+
+    <!-- ================= SPIN AREA ================= -->
+
+    <div id="spinArea">
+
+      <div class="title">
+        🎡 Spin করুন
+      </div>
+
+      <div class="description">
+        নিচের Spin বাটনে চাপুন এবং আপনার
+        বিশেষ Spin Result দেখুন।
+      </div>
+
+
+      <div class="wheelArea">
+
+        <div class="pointer"></div>
+
+
+        <div
+          id="wheel"
+          class="wheel">
+
+          <div class="wheelText">
+
+            <span class="t1">
+              ৳20,000
+            </span>
+
+            <span class="t2">
+              ৳30,000
+            </span>
+
+            <span class="t3">
+              ৳40,000
+            </span>
+
+            <span class="t4">
+              ৳50,000
+            </span>
+
+            <span class="t5">
+              ৳20,000
+            </span>
+
+            <span class="t6">
+              ৳30,000
+            </span>
+
+            <span class="t7">
+              ৳40,000
+            </span>
+
+            <span class="t8">
+              ৳50,000
+            </span>
+
+          </div>
+
+
+          <div class="center">
+            SPIN
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <button
+        id="spinBtn"
+        class="spinBtn"
+        onclick="startSpin()">
+
+        🎡 SPIN করুন
+
+      </button>
+
+
+      <div
+        id="loading"
+        class="loading">
+
+        ⏳ ফলাফল প্রস্তুত হচ্ছে...
+
+      </div>
+
+    </div>
+
+
+    <!-- ================= RESULT ================= -->
+
+    <div
+      id="result"
+      class="result">
+
+      <div class="resultIcon">
+        🎉
+      </div>
+
+      <div class="resultTitle">
+        অভিনন্দন!
+      </div>
+
+      <div
+        id="resultAmount"
+        class="resultAmount">
+
+        ৳50,000
+
+      </div>
+
+      <div class="resultText">
+
+        🎁 আপনার Spin Result পাওয়া গেছে।<br>
+        বিস্তারিত দেখতে Game Play Ads-এ প্রবেশ করুন।
+
+      </div>
+
+
+      <button
+        class="openBtn"
+        onclick="openGamePlayAds()">
+
+        🚀 Game Play Ads-এ প্রবেশ করুন
+
+      </button>
+
+    </div>
+
+
+  </div>
+
+
+  <div class="footer">
+
+    Game Play Ads • Special Spin
+
+  </div>
+
+</div>
+
+
+<script type="module">
+
+
+/* =====================================================
+   FIREBASE
+===================================================== */
+
+import {
+  initializeApp
+}
+from
+"https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+
+
+import {
+  getDatabase,
+  ref,
+  update,
+  increment
+}
+from
+"https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
+
+const firebaseConfig = {
+
+  apiKey:
+    "AIzaSyC33MnqbprRYlgdKRbCv0749ZOgyMqufcw",
+
+  authDomain:
+    "coinplay-9e67f.firebaseapp.com",
+
+  databaseURL:
+    "https://coinplay-9e67f-default-rtdb.asia-southeast1.firebasedatabase.app",
+
+  projectId:
+    "coinplay-9e67f",
+
+  storageBucket:
+    "coinplay-9e67f.firebasestorage.app",
+
+  messagingSenderId:
+    "1096066059726",
+
+  appId:
+    "1:1096066059726:web:c1f4320b42df37dd626f9f",
+
+  measurementId:
+    "G-J3QWQMVSHJ"
+
+};
+
+
+const app =
+  initializeApp(firebaseConfig);
+
+
+const db =
+  getDatabase(app);
+
+
+/* =====================================================
+   PRIZES / RESULTS
+===================================================== */
+
+const results = [
+
+  "৳20,000",
+
+  "৳30,000",
+
+  "৳40,000",
+
+  "৳50,000",
+
+  "৳20,000",
+
+  "৳30,000",
+
+  "৳40,000",
+
+  "৳50,000"
+
+];
+
+
+/* =====================================================
+   STATE
+===================================================== */
+
+let spinning = false;
+
+
+/* =====================================================
+   SPIN
+===================================================== */
+
+window.startSpin =
+function(){
+
+  if(spinning){
+    return;
+  }
+
+
+  spinning = true;
+
+
+  const button =
+    document.getElementById(
+      "spinBtn"
+    );
+
+
+  const loading =
+    document.getElementById(
+      "loading"
+    );
+
+
+  button.disabled = true;
+
+  button.textContent =
+    "🎡 ঘুরছে...";
+
+
+  loading.style.display =
+    "block";
+
+
+  /*
+   * Random result
+   */
+
+  const resultIndex =
+    Math.floor(
+      Math.random() *
+      results.length
+    );
+
+
+  /*
+   * Wheel segment = 45°
+   */
+
+  const segment =
+    45;
+
+
+  /*
+   * কয়েকবার সম্পূর্ণ ঘুরবে
+   */
+
+  const extraSpins =
+    6 * 360;
+
+
+  /*
+   * নির্বাচিত segment-এর
+   * মাঝখানে থামবে
+   */
+
+  const stopAngle =
+    extraSpins +
+    (360 -
+      (
+        resultIndex *
+        segment
+      ) -
+      segment / 2
+    );
+
+
+  const wheel =
+    document.getElementById(
+      "wheel"
+    );
+
+
+  wheel.style.transform =
+    `rotate(${stopAngle}deg)`;
+
+
+  /*
+   * Firebase-এ মোট Spin
+   */
+
+  update(
+
+    ref(db),
+
+    {
+
+      "promotionStats/totalSpins":
+        increment(1),
+
+      "promotionStats/lastSpin":
+        Date.now()
+
+    }
+
+  ).catch(error => {
+
+    console.error(
+      "Firebase:",
+      error
+    );
+
+  });
+
+
+  /*
+   * Animation শেষ
+   */
+
+  setTimeout(()=>{
+
+    const result =
+      results[resultIndex];
+
+
+    document.getElementById(
+      "resultAmount"
+    ).textContent =
+      result;
+
+
+    document.getElementById(
+      "spinArea"
+    ).style.display =
+      "none";
+
+
+    document.getElementById(
+      "result"
+    ).style.display =
+      "block";
+
+
+    /*
+     * Automatic redirect
+     *
+     * 4 seconds পরে
+     */
+
+    setTimeout(
+      openGamePlayAds,
+      4000
+    );
+
+
+  },5200);
+
+};
+
+
+/* =====================================================
+   OPEN GAME PLAY ADS
+===================================================== */
+
+window.openGamePlayAds =
+function(){
+
+  window.location.href =
+    "https://gameplayads5-sketch.github.io/Game-Play-Ads/index.html?utm_source=spin&utm_medium=facebook&utm_campaign=spin_offer";
+
+};
+
+
+</script>
+
+
+</body>
+
+</html>
