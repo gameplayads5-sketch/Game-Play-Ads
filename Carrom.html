@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GameNest BD • Live Carrom</title>
+<style>
+:root{--bg:#031326;--panel:#061d36;--line:#14537f;--cyan:#19c8ff;--green:#18e777;--gold:#ffc857}
+*{box-sizing:border-box}html,body{margin:0;background:#020d19;color:#eef7ff;font-family:system-ui,-apple-system,Segoe UI,Noto Sans Bengali,sans-serif}
+body{min-height:100vh}.app{max-width:720px;margin:auto;padding:10px 9px 20px;background:linear-gradient(#03172b,#031326 70%);min-height:100vh}
+.header{border:1px solid #14537f;border-radius:0 0 22px 22px;background:linear-gradient(145deg,#082a4c,#041a30);padding:12px;box-shadow:0 8px 20px #0005}.row{display:flex;align-items:center;justify-content:space-between;gap:7px}.title{text-align:center;flex:1}.title b{font-size:20px}.title span{display:block;color:#83a7c3;font-size:12px}
+.btn{min-height:43px;padding:9px 13px;border-radius:15px;border:1px solid #17618e;background:#062442;color:#fff;font-weight:800;font-size:13px}.btn.primary{background:linear-gradient(135deg,#0b7fff,#18bfe9);border-color:#1ab8ff}
+.banner{border:1px dashed #14537f;border-radius:17px;padding:11px;text-align:center;margin:9px 0;color:#bfd2e0;font-size:13px}.live{color:#1cff79}.info{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:7px;margin:9px 0}.box{border:1px solid #17618e;background:#041a2e;border-radius:18px;padding:9px;text-align:center}.label{font-size:12px}.value{font-size:20px;font-weight:900}.turn{box-shadow:0 0 18px #00aaff33}.turn .value{color:#23d7ff}.dot{display:inline-block;width:9px;height:9px;background:#19ef75;border-radius:50%;box-shadow:0 0 10px #19ef75}
+.boardCard{border:1px solid #17618e;border-radius:24px;background:#041a2e;padding:10px}.canvasWrap{position:relative}.canvasOverlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}.waitBox{background:#20232aeF;border-radius:28px;padding:28px 22px;text-align:center;font-size:19px;font-weight:800;max-width:78%;box-shadow:0 12px 30px #0007}.waitBox small{display:block;margin-top:8px;font-weight:500;font-size:13px;color:#b7c7d4}
+canvas{display:block;width:100%;height:auto;border-radius:19px;touch-action:none}.status{min-height:21px;text-align:center;color:#ffc857;font-size:13px;margin:7px 0}.counter{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:8px}.c{border:1px solid #14517d;background:#041a2e;border-radius:15px;text-align:center;padding:8px;font-size:12px}.c b{display:block;font-size:19px}.white{color:#fff}.queen{color:#ef4242}.black{color:#999}
+.entry{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;border:1px solid #14517d;background:#041a2e;border-radius:17px;padding:7px;margin-top:8px}.entryText{text-align:center;color:#a9bfd0;font-size:12px}.entryText b{display:block;color:#fff;font-size:22px}.plusminus{width:100%;height:58px;font-size:30px}.hidden{display:none!important}
+@media(max-width:400px){.btn{padding:8px 9px}.title b{font-size:18px}}
+</style>
+</head>
+<body><main class="app">
+<section class="header"><div class="row">
+<button class="btn" id="home">← হোম</button><div class="title"><b>🎯 CARROM</b><span>GameNest BD • LIVE MATCH</span></div>
+<button class="btn primary" id="newBtn">↻ নতুন</button><button class="btn" id="rules">📖 নিয়ম</button>
+</div></section>
+<div class="banner" id="banner">🔐 Firebase-এ সংযোগ হচ্ছে…</div>
+<div class="info"><div class="box"><div class="label">user balance</div><div class="value" id="balance">0</div></div><div class="box turn"><div class="label" id="round">Round 1</div><div class="value"><span class="dot"></span> <span id="turn">Waiting</span></div></div><div class="box"><div class="label">last win</div><div class="value" id="lastWin">0</div></div></div>
+<section class="boardCard"><div class="canvasWrap"><canvas id="board" width="720" height="720"></canvas><div class="canvasOverlay" id="overlay"><div class="waitBox">⏳ প্রতিপক্ষ খোঁজা হচ্ছে…<small>দ্বিতীয় খেলোয়াড় যুক্ত হলে গুটি ও Striker চালু হবে</small></div></div></div>
+<div class="status" id="status">Matchmaking চলছে…</div><div class="row"><button class="btn" id="left">◀ Striker Left</button><button class="btn" id="center">● Center</button><button class="btn" id="right">Striker Right ▶</button></div>
+<div style="text-align:center;color:#8fa9c0;font-size:12px;margin-top:7px">🎯 Striker-এর উপর আঙুল রাখুন → টেনে পিছনে নিন → ছেড়ে দিন।</div></section>
+<div class="counter"><div class="c white">⚪ White's Pieces<b id="whiteCount">9</b></div><div class="c queen">🔴 Queen<b id="queenCount">1</b></div><div class="c black">⚫ Black's Pieces<b id="blackCount">9</b></div></div>
+<div class="entry"><button class="btn plusminus" id="minus">−</button><div class="entryText">💰 PLAY BALANCE / ENTRY AMOUNT<b>৳<span id="entry">10</span></b></div><button class="btn plusminus" id="plus">+</button></div>
+</main>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {getAuth,signInAnonymously,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {getDatabase,ref,set,get,update,onValue,query,orderByChild,equalTo,limitToFirst,onDisconnect,runTransaction,push,remove} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyD2DBF_GTIkQfa6G_3gZLfZ5n0MaUEBQ48",
+ authDomain:"gamenest-bd.firebaseapp.com",
+ databaseURL:"https://gamenest-bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId:"gamenest-bd",
+ storageBucket:"gamenest-bd.firebasestorage.app",
+ messagingSenderId:"1020093526765",
+ appId:"1:1020093526765:web:525b5f303e0f08d7b692e4",
+ measurementId:"G-Z66KWE43M6"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app);
+const $=id=>document.getElementById(id),canvas=$('board'),ctx=canvas.getContext('2d');
+let uid=null,matchId=null,role=null,queueKey=null,matchUnsub=null,queueUnsub=null,actionUnsub=null;
+let coins=[],striker={x:360,y:610,r:18,vx:0,vy:0,alive:true},turn=0,round=1,scores=[0,0],moving=false,drag=false,aim={x:360,y:530},power=0,entry=10,hostRunning=false,gameOver=false;
+const C={x:360,y:360},R=300,pocketR=26,coinR=13,pockets=[{x:60,y:60},{x:660,y:60},{x:60,y:660},{x:660,y:660}];
+
+function banner(t,ok=false){$('banner').innerHTML=ok?`<span class="live">🟢 ${t}</span>`:t}
+function resetState(){coins=[{x:360,y:360,r:coinR,type:'queen',vx:0,vy:0,alive:true}];for(let i=0;i<8;i++){let a=i*Math.PI/4;coins.push({x:360+Math.cos(a)*29,y:360+Math.sin(a)*29,r:coinR,type:i%2?'black':'white',vx:0,vy:0,alive:true})}striker={x:360,y:610,r:18,vx:0,vy:0,alive:true};turn=0;round=1;scores=[0,0];moving=false;gameOver=false;aim={x:360,y:530};power=0;render();updateUI()}
+function updateUI(){ $('round').textContent='Round '+round;$('turn').textContent=matchId?(turn===0?'Player 1':'Player 2'):'Waiting';$('whiteCount').textContent=coins.filter(c=>c.alive&&c.type==='white').length;$('blackCount').textContent=coins.filter(c=>c.alive&&c.type==='black').length;$('queenCount').textContent=coins.filter(c=>c.alive&&c.type==='queen').length;$('overlay').classList.toggle('hidden',!!matchId&&!!role);$('status').textContent=matchId?(role===1?'আপনি Player 1 — LIVE':'আপনি Player 2 — LIVE'):'Matchmaking চলছে…'}
+function encode(){return{turn,round,scores,coins:coins.map(c=>({x:c.x,y:c.y,r:c.r,type:c.type,vx:c.vx,vy:c.vy,alive:c.alive})),striker:{x:striker.x,y:striker.y,r:striker.r,vx:striker.vx,vy:striker.vy,alive:striker.alive},status:gameOver?'finished':'playing',updatedAt:Date.now()}}
+function apply(s){if(!s)return;turn=s.turn??0;round=s.round??1;scores=s.scores||[0,0];coins=s.coins||[];striker=s.striker||striker;gameOver=s.status==='finished';render();updateUI()}
+function makeState(){resetState();return encode()}
+async function authenticate(){try{await signInAnonymously(auth)}catch(e){banner('❌ Anonymous Authentication চালু নেই — Firebase Authentication-এ Anonymous enable করুন');console.error(e)}}
+onAuthStateChanged(auth,async user=>{if(!user)return;uid=user.uid;banner('Firebase connected',true);await findMatch()});
+
+async function findMatch(){
+ const q=query(ref(db,'matchQueue'),orderByChild('status'),equalTo('waiting'),limitToFirst(10));
+ const snap=await get(q);let found=null;if(snap.exists())snap.forEach(s=>{if(!found&&s.key!==uid)found={key:s.key,val:s.val()};});
+ if(found){matchId='m_'+found.key+'_'+uid;role=2;queueKey=found.key;await update(ref(db,'matchQueue/'+found.key),{player2:uid});await createOrJoinMatch(matchId,found.val.uid,uid)}
+ else{queueKey=uid;matchId=null;role=null;await set(ref(db,'matchQueue/'+uid),{uid,status:'waiting',createdAt:Date.now()});onDisconnect(ref(db,'matchQueue/'+uid)).remove();queueUnsub=onValue(ref(db,'matchQueue/'+uid),async s=>{let v=s.val();if(v?.player2){matchId=v.roomId || ('m_'+uid+'_'+v.player2);role=1;await update(ref(db,'matchQueue/'+uid),{status:'matched',roomId:matchId});await createOrJoinMatch(matchId,uid,v.player2)}})}
+}
+async function createOrJoinMatch(id,p1,p2){
+ if(queueUnsub){queueUnsub();queueUnsub=null}
+ const r=ref(db,'matches/'+id),snap=await get(r);
+ if(!snap.exists()){await set(r,{player1:p1,player2:p2,status:'playing',createdAt:Date.now(),state:encode()})}
+ else if(role===2){await update(r,{player2:uid,status:'playing'})}
+ listenMatch(r);banner(`LIVE MATCH • Player ${role}`,true);updateUI();
+}
+function listenMatch(r){if(matchUnsub)matchUnsub();matchUnsub=onValue(r,s=>{let m=s.val();if(!m)return;if(m.state)apply(m.state);if(m.status==='finished'){gameOver=true;setStatus('🏁 Match শেষ')}});if(role===1)listenActions(r)}
+function setStatus(t){$('status').textContent=t}
+function listenActions(r){if(actionUnsub)actionUnsub();actionUnsub=onValue(ref(db,'matches/'+matchId+'/actions'),s=>{s.forEach(x=>{let a=x.val();if(a.uid!==uid&&a.type==='shoot'&&!moving&&turn===1){startShot(a.x,a.y,a.power,true);remove(x.ref)}})})}
+function sendShot(){if(!matchId||moving||gameOver)return;if((role===1&&turn!==0)||(role===2&&turn!==1))return;const action={uid,type:'shoot',x:aim.x,y:aim.y,power,createdAt:Date.now()};if(role===1)startShot(action.x,action.y,action.power,true);else push(ref(db,'matches/'+matchId+'/actions'),action)}
+function startShot(ax,ay,pow,host){if(!host&&role!==1)return;let dx=360-ax,dy=610-ay,l=Math.hypot(dx,dy)||1,s=7+pow*11;striker.alive=true;striker.x=360;striker.y=610;striker.vx=dx/l*s;striker.vy=dy/l*s;moving=true;setStatus('শট চলছে…');requestAnimationFrame(hostLoop)}
+function wall(o){let dx=o.x-C.x,dy=o.y-C.y,d=Math.hypot(dx,dy),lim=R-o.r;if(d>lim){let nx=dx/d,ny=dy/d;o.x=C.x+nx*lim;o.y=C.y+ny*lim;let v=o.vx*nx+o.vy*ny;if(v>0){o.vx-=2*v*nx;o.vy-=2*v*ny}}}
+function physics(){let all=[striker,...coins.filter(c=>c.alive)];for(let o of all){o.x+=o.vx;o.y+=o.vy;o.vx*=.985;o.vy*=.985;if(Math.hypot(o.vx,o.vy)<.035)o.vx=o.vy=0;wall(o)}for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){let a=all[i],b=all[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.01,min=a.r+b.r;if(d<min){let nx=dx/d,ny=dy/d,over=min-d;a.x-=nx*over/2;a.y-=ny*over/2;b.x+=nx*over/2;b.y+=ny*over/2;let rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(rel<0){let q=-rel*.9;a.vx-=q*nx;a.vy-=q*ny;b.vx+=q*nx;b.vy+=q*ny}}}let got=0;for(let o of all)for(let p of pockets)if(o.alive&&Math.hypot(o.x-p.x,o.y-p.y)<pocketR*.9){if(o===striker){o.alive=false}else{o.alive=false;got++;scores[turn]++}break}if(!all.some(o=>o.vx||o.vy)){moving=false;if(!striker.alive){striker.alive=true;striker.x=360;striker.y=610}if(!got)turn=1-turn;round++;aim={x:360,y:530};power=0;if(!coins.some(c=>c.alive)){gameOver=true}writeState();updateUI();render()}}
+let lastWrite=0;function writeState(){if(role!==1||!matchId)return;const now=Date.now();if(now-lastWrite>100||!moving){lastWrite=now;update(ref(db,'matches/'+matchId),{state:encode(),status:gameOver?'finished':'playing'})}}
+function hostLoop(){if(!moving||role!==1)return;physics();render();writeState();if(moving)requestAnimationFrame(hostLoop)}
+function point(e){let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*720/r.width,y:(e.clientY-r.top)*720/r.height}}
+function setAim(p){if(!matchId||moving||gameOver)return;let dx=p.x-360,dy=p.y-610,l=Math.hypot(dx,dy)||1,d=Math.min(l,220);aim={x:360+dx/l*d,y:610+dy/l*d};power=d/220;render()}
+canvas.addEventListener('pointerdown',e=>{if(!matchId)return;drag=true;canvas.setPointerCapture(e.pointerId);setAim(point(e))});canvas.addEventListener('pointermove',e=>{if(drag)setAim(point(e))});canvas.addEventListener('pointerup',e=>{drag=false;setAim(point(e));sendShot()});
+$('left').onclick=()=>{if(matchId&&!moving)aim.x=Math.max(170,aim.x-25),render()};$('right').onclick=()=>{if(matchId&&!moving)aim.x=Math.min(550,aim.x+25),render()};$('center').onclick=()=>{if(matchId&&!moving)aim={x:360,y:530},render()};
+$('plus').onclick=()=>{entry=Math.min(1000,entry+10);$('entry').textContent=entry};$('minus').onclick=()=>{entry=Math.max(0,entry-10);$('entry').textContent=entry};
+$('newBtn').onclick=async()=>{if(queueKey)await remove(ref(db,'matchQueue/'+queueKey));if(matchId)await update(ref(db,'matches/'+matchId),{status:'finished'});location.reload()};
+$('home').onclick=()=>history.back();$('rules').onclick=()=>alert('LIVE ম্যাচে দুইজন Firebase-এর মাধ্যমে যুক্ত হবে। Player 1-এর game state authoritative থাকবে। Player 2-এর shot command Firebase-এ যাবে এবং Player 1 সেটি চালাবে। এই build-এ Entry Amount UI-only; wallet/real-money transaction সংযুক্ত নয়।');
+resetState();authenticate();
+
+function render(){ctx.clearRect(0,0,720,720);ctx.fillStyle='#6e3d20';ctx.fillRect(0,0,720,720);ctx.fillStyle='#d79b54';ctx.beginPath();ctx.arc(360,360,322,0,7);ctx.fill();ctx.strokeStyle='#5a3019';ctx.lineWidth=9;ctx.stroke();ctx.fillStyle='#c88743';ctx.beginPath();ctx.arc(360,360,300,0,7);ctx.fill();for(let p of pockets){ctx.fillStyle='#1a100b';ctx.beginPath();ctx.arc(p.x,p.y,26,0,7);ctx.fill()}ctx.strokeStyle='#5d321b';ctx.lineWidth=3;ctx.beginPath();ctx.arc(360,360,48,0,7);ctx.stroke();for(let c of coins)if(c.alive){ctx.beginPath();ctx.arc(c.x,c.y,c.r+2,0,7);ctx.fillStyle='#4a2918';ctx.fill();ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,7);ctx.fillStyle=c.type==='queen'?'#e52e38':c.type==='black'?'#24282d':'#f4eee2';ctx.fill()}if(striker.alive){ctx.beginPath();ctx.arc(striker.x,striker.y,21,0,7);ctx.fillStyle='#57301b';ctx.fill();ctx.beginPath();ctx.arc(striker.x,striker.y,18,0,7);ctx.fillStyle='#f5f0e6';ctx.fill()}if(matchId&&!moving&&!gameOver){ctx.setLineDash([8,8]);ctx.strokeStyle='#f9df9a';ctx.beginPath();ctx.moveTo(360,610);ctx.lineTo(aim.x,aim.y);ctx.stroke();ctx.setLineDash([])}}
+</script></body></html>
