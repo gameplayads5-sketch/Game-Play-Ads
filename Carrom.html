@@ -56,89 +56,110 @@ function updateUI(){ $('round').textContent='Round '+round;$('turn').textContent
 function encode(){return{turn,round,scores,coins:coins.map(c=>({x:c.x,y:c.y,r:c.r,type:c.type,vx:c.vx,vy:c.vy,alive:c.alive})),striker:{x:striker.x,y:striker.y,r:striker.r,vx:striker.vx,vy:striker.vy,alive:striker.alive},status:gameOver?'finished':'playing',updatedAt:Date.now()}}
 function apply(s){if(!s)return;turn=s.turn??0;round=s.round??1;scores=s.scores||[0,0];coins=s.coins||[];striker=s.striker||striker;gameOver=s.status==='finished';render();updateUI()}
 function makeState(){resetState();return encode()}
-async function authenticate(){try{if(auth.currentUser)return;await signInAnonymously(auth)}catch(e){banner('❌ Anonymous Authentication চালু নেই — Firebase Authentication-এ Anonymous enable করুন');console.error(e)}}
+async function authenticate(){try{await signInAnonymously(auth)}catch(e){banner('❌ Anonymous Authentication চালু নেই — Firebase Authentication-এ Anonymous enable করুন');console.error(e)}}
 onAuthStateChanged(auth,async user=>{if(!user)return;uid=user.uid;banner('Firebase connected',true);await findMatch()});
 
-async function findMatch(){
-  // Register this client first, then let the newer client claim the older
-  // waiting player. This prevents the "both saw an empty queue" race.
-  if(!uid)return;
-  const myRef=ref(db,'matchQueue/'+uid);
-  const mySnap=await get(myRef);
-  if(!mySnap.exists() || mySnap.val()?.status!=='waiting'){
-    queueKey=uid;
-    await set(myRef,{uid,status:'waiting',createdAt:Date.now()});
-  }else{
-    queueKey=uid;
-  }
+let myQueueCreatedAt=0, myQueueRef=null;
 
-  onDisconnect(myRef).remove();
-
-  if(queueUnsub){queueUnsub();queueUnsub=null}
-  queueUnsub=onValue(myRef,async s=>{
-    const v=s.val();
-    if(v?.status==='matched' && v?.player2 && v?.roomId){
-      matchId=v.roomId;
-      role=(v.player1===uid)?1:2;
-      await createOrJoinMatch(matchId,v.player1,v.player2);
-    }
-  });
-
-  await tryClaimWaiting();
+function isOlder(a,b){
+  const at=Number(a?.createdAt||0), bt=Number(b?.createdAt||0);
+  if(at!==bt) return at<bt;
+  return String(a?.uid||'') < String(b?.uid||'');
 }
 
-async function tryClaimWaiting(){
-  if(!uid || matchId)return;
-  const mySnap=await get(ref(db,'matchQueue/'+uid));
-  const mine=mySnap.val();
-  if(!mine || mine.status!=='waiting')return;
+async function findMatch(){
+  try{
+    queueKey=uid;
+    myQueueCreatedAt=Date.now();
+    myQueueRef=ref(db,'matchQueue/'+uid);
+    matchId=null; role=null;
 
-  const q=query(ref(db,'matchQueue'),orderByChild('status'),equalTo('waiting'),limitToFirst(20));
-  const snap=await get(q);
-  let found=null;
+    await set(myQueueRef,{uid,status:'waiting',createdAt:myQueueCreatedAt});
+    onDisconnect(myQueueRef).remove();
 
-  snap.forEach(s=>{
-    if(found || s.key===uid)return;
-    const v=s.val()||{};
-    if(v.status!=='waiting')return;
+    if(queueUnsub){queueUnsub();queueUnsub=null}
+    queueUnsub=onValue(myQueueRef,async s=>{
+      const v=s.val();
+      if(!v || v.uid!==uid) return;
+
+      if(v.player2 && v.roomId){
+        matchId=v.roomId;
+        role=1;
+        if(queueUnsub){queueUnsub();queueUnsub=null}
+        await createHostMatch(matchId,uid,v.player2);
+      }else if(v.player2 && v.status==='waiting'){
+        const room='m_'+uid+'_'+v.player2;
+        matchId=room;
+        role=1;
+        await update(myQueueRef,{status:'matched',roomId:room});
+        await createHostMatch(room,uid,v.player2);
+      }
+    });
+
+    const q=query(
+      ref(db,'matchQueue'),
+      orderByChild('status'),
+      equalTo('waiting'),
+      limitToFirst(20)
+    );
+
+    const snap=await get(q);
+    let candidates=[];
+
+    if(snap.exists()){
+      snap.forEach(s=>{
+        const v=s.val();
+        if(s.key!==uid && v && v.uid===s.key && !v.player2){
+          candidates.push({key:s.key,val:v});
+        }
+      });
+    }
+
+    candidates.sort((a,b)=>{
+      const ac=Number(a.val.createdAt||0), bc=Number(b.val.createdAt||0);
+      if(ac!==bc) return ac-bc;
+      return String(a.key).localeCompare(String(b.key));
+    });
 
     // Only the newer player claims the older waiting player.
-    // If timestamps tie, lexicographically larger uid claims smaller uid.
-    const older=(Number(v.createdAt||0)<Number(mine.createdAt||0)) ||
-      (Number(v.createdAt||0)===Number(mine.createdAt||0) && String(s.key)<String(uid));
-    if(older)found={key:s.key,val:v};
-  });
+    // This prevents both devices from claiming each other simultaneously.
+    const found=candidates.find(x =>
+      isOlder(x.val,{uid,createdAt:myQueueCreatedAt})
+    );
 
-  if(!found)return;
+    if(found){
+      const player2Ref=ref(db,'matchQueue/'+found.key+'/player2');
 
-  const roomId='m_'+found.key+'_'+uid;
-  const candidateRef=ref(db,'matchQueue/'+found.key);
+      const tx=await runTransaction(player2Ref,current=>{
+        return current==null ? uid : current;
+      });
 
-  const result=await runTransaction(candidateRef,current=>{
-    if(!current || current.status!=='waiting')return;
-    return {
-      ...current,
-      status:'matched',
-      player1:current.uid,
-      player2:uid,
-      roomId,
-      matchedAt:Date.now()
-    };
-  });
+      if(tx.committed && tx.snapshot.val()===uid){
+        if(queueUnsub){queueUnsub();queueUnsub=null}
 
-  if(result.committed){
-    matchId=roomId;
-    role=2;
-    queueKey=found.key;
-    await createOrJoinMatch(roomId,found.key,uid);
-  }else{
-    // Another client claimed that player; try once more if needed.
-    setTimeout(()=>tryClaimWaiting(),200);
+        await remove(myQueueRef);
+
+        queueKey=found.key;
+        role=2;
+        matchId=null;
+
+        listenForHostMatch(found.key);
+        setStatus('প্রতিপক্ষ পাওয়া গেছে — ম্যাচ তৈরি হচ্ছে…');
+      }else{
+        setStatus('প্রতিপক্ষ খোঁজা হচ্ছে…');
+      }
+    }else{
+      setStatus('Matchmaking চলছে…');
+    }
+
+  }catch(e){
+    console.error('findMatch error:',e);
+    banner('❌ Matchmaking error — Database Rules/connection পরীক্ষা করুন');
+    setStatus('Matchmaking error');
   }
 }
 
-async function createOrJoinMatch(id,p1,p2){
-  if(queueUnsub){queueUnsub();queueUnsub=null}
+async function createHostMatch(id,p1,p2){
   const r=ref(db,'matches/'+id);
   const snap=await get(r);
 
@@ -150,20 +171,41 @@ async function createOrJoinMatch(id,p1,p2){
       createdAt:Date.now(),
       state:makeState()
     });
-  }else{
-    const m=snap.val()||{};
-    await update(r,{
-      player1:m.player1||p1,
-      player2:m.player2||p2,
-      status:'playing'
-    });
   }
 
   listenMatch(r);
-  banner(`LIVE MATCH • Player ${role}`,true);
+  banner('LIVE MATCH • Player 1',true);
   updateUI();
 }
 
+function listenForHostMatch(qKey){
+  const qr=ref(db,'matchQueue/'+qKey);
+
+  if(queueUnsub){queueUnsub();queueUnsub=null}
+
+  queueUnsub=onValue(qr,async s=>{
+    const v=s.val();
+    if(!v) return;
+
+    if(v.roomId && v.player2===uid){
+      matchId=v.roomId;
+      role=2;
+
+      if(queueUnsub){queueUnsub();queueUnsub=null}
+
+      const r=ref(db,'matches/'+matchId);
+      const ms=await get(r);
+
+      if(ms.exists() && ms.val().player2===uid){
+        listenMatch(r);
+        banner('LIVE MATCH • Player 2',true);
+        updateUI();
+      }else{
+        setStatus('ম্যাচ তৈরি হচ্ছে…');
+      }
+    }
+  });
+}
 function listenMatch(r){if(matchUnsub)matchUnsub();matchUnsub=onValue(r,s=>{let m=s.val();if(!m)return;if(m.state)apply(m.state);if(m.status==='finished'){gameOver=true;setStatus('🏁 Match শেষ')}});if(role===1)listenActions(r)}
 function setStatus(t){$('status').textContent=t}
 function listenActions(r){if(actionUnsub)actionUnsub();actionUnsub=onValue(ref(db,'matches/'+matchId+'/actions'),s=>{s.forEach(x=>{let a=x.val();if(a.uid!==uid&&a.type==='shoot'&&!moving&&turn===1){startShot(a.x,a.y,a.power,true);remove(x.ref)}})})}
