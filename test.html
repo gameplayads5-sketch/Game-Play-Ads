@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Ludo Tournament Live Test</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f7fb;color:#18212f}
+.app{max-width:520px;margin:auto;padding:14px}.card{background:#fff;border:1px solid #dfe5ee;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 14px #0000000a}
+h1,h2,h3{margin:0 0 8px}.muted{color:#697586;font-size:13px}.hidden{display:none!important}
+input{width:100%;padding:13px;border:1px solid #ccd5e1;border-radius:12px;font-size:16px;margin:6px 0}
+button{border:0;border-radius:12px;padding:12px 15px;font-weight:700;background:#1769e0;color:white;margin:4px 2px;cursor:pointer}
+button.secondary{background:#e8eef8;color:#19304f}button.danger{background:#d92d20}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef3fa;font-size:12px}
+.notice{padding:10px;border-radius:12px;background:#f0f6ff;margin-top:10px;font-size:13px}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.player{padding:12px;border:1px solid #dfe5ee;border-radius:14px}
+.board{width:min(92vw,430px);aspect-ratio:1;margin:14px auto;border:5px solid #222;border-radius:16px;display:grid;grid-template-columns:repeat(11,1fr);overflow:hidden;background:#fff}
+.cell{border:1px solid #d8dce3;display:flex;align-items:center;justify-content:center;font-size:11px;position:relative}
+.homeR{background:#ffd8d8}.homeG{background:#d8f4df}.homeY{background:#fff0b8}.homeB{background:#d8e9ff}.path{background:#fff}
+.center{grid-column:5/8;grid-row:5/8;background:#e8edf4;font-size:22px;font-weight:900}
+.token{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px #0006;position:absolute}
+.red{background:#e53935}.green{background:#21a453}.yellow{background:#e7b800}.blue{background:#2878d8}
+.tokenBtn{width:100%;min-height:46px}.status{font-weight:700}
+</style>
+</head>
+<body>
+<div class="app">
+<section id="auth" class="card">
+<h1>🎲 Ludo Tournament</h1>
+<p class="muted">Live Firebase 1v1 test • কোনো টাকা/প্রাইজ নেই</p>
+<div id="signup">
+<h3>নতুন অ্যাকাউন্ট</h3>
+<input id="sName" placeholder="আপনার নাম">
+<input id="sPhone" inputmode="numeric" placeholder="মোবাইল নম্বর">
+<input id="sPin" inputmode="numeric" maxlength="12" placeholder="PIN (৬–১২ সংখ্যা)" type="password">
+<button id="signupBtn">Sign Up</button>
+</div>
+<div id="login" class="hidden">
+<h3>Login</h3>
+<input id="lPhone" inputmode="numeric" placeholder="মোবাইল নম্বর">
+<input id="lPin" inputmode="numeric" placeholder="PIN" type="password">
+<button id="loginBtn">Login</button>
+</div>
+<p id="authMsg" class="muted"></p>
+</section>
+
+<section id="lobby" class="card hidden">
+<div class="row"><div><h2>🏆 Tournament Lobby</h2><p id="hello" class="muted"></p></div><span class="badge">LIVE TEST</span></div>
+<div class="card">
+<h3>Ludo 1v1 Practice</h3><p class="muted">দুইজন আলাদা account থেকে একই tournament-এ Join করুন।</p>
+<div class="players"><div class="player">Player 1<br><b id="p1">Waiting...</b></div><div class="player">Player 2<br><b id="p2">Waiting...</b></div></div>
+<button id="joinBtn">Join Tournament</button>
+<button id="logoutBtn" class="secondary">Logout</button>
+<p id="lobbyMsg" class="muted"></p>
+</div></section>
+
+<section id="game" class="card hidden">
+<div class="row"><div><h2>🎮 Match Room</h2><p class="muted">Room: <span id="roomIdText"></span></p></div><span id="turnBadge" class="badge">Waiting...</span></div>
+<div class="players"><div class="player">🔴 Player 1<br><b id="gP1">-</b></div><div class="player">🔵 Player 2<br><b id="gP2">-</b></div></div>
+<div id="board" class="board"></div>
+<div class="row"><button id="rollBtn">🎲 Roll Dice</button><span class="badge">Dice: <b id="dice">-</b></span><span class="badge">Turn: <b id="turnName">-</b></span></div>
+<p id="gameMsg" class="muted">Opponent join করলে ম্যাচ শুরু হবে।</p>
+<button id="leaveBtn" class="danger">Leave Match</button>
+</section>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+/* ==========================================================
+   1) আপনার Firebase Web App config এখানে বসান
+   Firebase Console > Project settings > Your apps > Web app
+   ========================================================== */
+const firebaseConfig={
+ apiKey:"AIzaSyD2DBF_GTIkQfa6G_3gZLfZ5n0MaUEBQ48",
+ authDomain:"gamenest-bd.firebaseapp.com",
+ databaseURL:"https://gamenest-bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId:"gamenest-bd",
+ storageBucket:"gamenest-bd.firebasestorage.app",
+ messagingSenderId:"1020093526765",
+ appId:"1:1020093526765:web:525b5f303e0f08d7b692e4",
+ measurementId:"G-Z66KWE43M6"
+};
+
+
+
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(), db=firebase.database();
+const $=id=>document.getElementById(id);
+let currentUser=null, profile=null, roomId=null, roomRef=null, roomData=null;
+
+function msg(t){$("authMsg").textContent=t}
+function emailFromPhone(phone){return phone.replace(/\D/g,'')+"@ludo-test.local"}
+
+$("signupBtn").onclick=async()=>{
+  const name=$("sName").value.trim(), phone=$("sPhone").value.trim(), pin=$("sPin").value.trim();
+  if(!name||!phone||!/^\d{6,12}$/.test(pin)){msg("নাম, মোবাইল এবং ৬–১২ সংখ্যার PIN দিন।");return}
+  try{
+    const cred=await auth.createUserWithEmailAndPassword(emailFromPhone(phone),pin);
+    await db.ref("users/"+cred.user.uid).set({uid:cred.user.uid,name,phone,createdAt:firebase.database.ServerValue.TIMESTAMP});
+    msg("Sign Up সফল। এখন Login করুন।");
+    $("signup").classList.add("hidden");$("login").classList.remove("hidden");
+    $("lPhone").value=phone;
+  }catch(e){msg(e.message)}
+};
+
+$("loginBtn").onclick=async()=>{
+  const phone=$("lPhone").value.trim(),pin=$("lPin").value.trim();
+  try{await auth.signInWithEmailAndPassword(emailFromPhone(phone),pin)}
+  catch(e){msg(e.message)}
+};
+
+auth.onAuthStateChanged(async u=>{
+  if(!u){return}
+  currentUser=u;
+  const snap=await db.ref("users/"+u.uid).get();
+  profile=snap.val()||{name:"Player",phone:""};
+  $("auth").classList.add("hidden");$("lobby").classList.remove("hidden");
+  $("hello").textContent="স্বাগতম, "+profile.name;
+  listenLobby();
+});
+
+function listenLobby(){
+  db.ref("tournament/current").on("value",snap=>{
+    const t=snap.val();
+    $("p1").textContent=t?.player1?.name||"Waiting...";
+    $("p2").textContent=t?.player2?.name||"Waiting...";
+    if(t?.roomId && (t.player1?.uid===currentUser.uid || t.player2?.uid===currentUser.uid)){
+      roomId=t.roomId; openRoom(roomId);
+    }
+  });
+}
+
+$("joinBtn").onclick=async()=>{
+  const ref=db.ref("tournament/current");
+  try{
+    const result=await ref.transaction(t=>{
+      t=t||{status:"waiting"};
+      if(t.player1?.uid===currentUser.uid||t.player2?.uid===currentUser.uid)return t;
+      if(!t.player1){
+        return {status:"waiting",player1:{uid:currentUser.uid,name:profile.name}};
+      }
+      if(!t.player2){
+        const rid="room_"+Date.now()+"_"+Math.random().toString(36).slice(2,7);
+        return {status:"matched",roomId:rid,player1:t.player1,player2:{uid:currentUser.uid,name:profile.name}};
+      }
+      return;
+    });
+    $("lobbyMsg").textContent=result.committed?"Join request processed.":"Tournament full.";
+  }catch(e){$("lobbyMsg").textContent=e.message}
+};
+
+async function openRoom(rid){
+  $("lobby").classList.add("hidden");$("game").classList.remove("hidden");
+  $("roomIdText").textContent=rid;
+  roomRef=db.ref("rooms/"+rid);
+  const t=(await db.ref("tournament/current").get()).val();
+  if(t?.roomId===rid && t.player1 && t.player2){
+    await roomRef.transaction(r=>{
+      if(r && r.player1 && r.player2)return r;
+      return {
+        player1:t.player1,
+        player2:t.player2,
+        status:"playing",
+        turn:t.player1.uid,
+        dice:null,
+        createdAt:firebase.database.ServerValue.TIMESTAMP
+      };
+    });
+  }
+  roomRef.on("value",snap=>{
+    roomData=snap.val();
+    if(!roomData)return;
+    renderRoom(roomData);
+  });
+}
+
+function renderRoom(r){
+  $("gP1").textContent=r.player1?.name||"Waiting...";
+  $("gP2").textContent=r.player2?.name||"Waiting...";
+  $("dice").textContent=r.dice??"-";
+  const turn=r.turn||"";
+  const mine=turn===currentUser.uid;
+  $("turnBadge").textContent=mine?"🟢 Your turn":"⏳ Opponent turn";
+  $("turnName").textContent=mine?profile.name:(turn===r.player1?.uid?r.player1?.name:r.player2?.name)||"-";
+  $("gameMsg").textContent=r.status==="playing"?(mine?"আপনার পালা। Dice Roll করুন।":"প্রতিপক্ষের পালা।"): "Opponent join করলে ম্যাচ শুরু হবে।";
+  drawBoard(r);
+  if(r.player1&&r.player2&&r.status!=="playing"){
+    roomRef.update({status:"playing",turn:r.player1.uid,dice:null});
+  }
+}
+
+function drawBoard(r){
+  const b=$("board");b.innerHTML="";
+  for(let i=0;i<121;i++){
+    const c=document.createElement("div");c.className="cell";
+    const row=Math.floor(i/11),col=i%11;
+    if(row<3&&col<3)c.classList.add("homeR");
+    else if(row<3&&col>7)c.classList.add("homeG");
+    else if(row>7&&col<3)c.classList.add("homeB");
+    else if(row>7&&col>7)c.classList.add("homeY");
+    else c.classList.add("path");
+    if(row>=4&&row<=6&&col>=4&&col<=6){c.className="cell center";c.textContent="★"}
+    if(i===5&&r.player1){const x=document.createElement("span");x.className="token red";c.appendChild(x)}
+    if(i===115&&r.player2){const x=document.createElement("span");x.className="token blue";c.appendChild(x)}
+    b.appendChild(c);
+  }
+}
+
+$("rollBtn").onclick=async()=>{
+  if(!roomData||roomData.turn!==currentUser.uid){$("gameMsg").textContent="এখন আপনার পালা নয়।";return}
+  const n=Math.floor(Math.random()*6)+1;
+  const next=roomData.player1?.uid===currentUser.uid?roomData.player2?.uid:roomData.player1?.uid;
+  await roomRef.update({dice:n,lastRollBy:currentUser.uid,turn:next});
+};
+
+$("leaveBtn").onclick=async()=>{
+  if(roomRef) await roomRef.off();
+  await auth.signOut();
+  location.reload();
+};
+$("logoutBtn").onclick=()=>auth.signOut().then(()=>location.reload());
+</script>
+</body>
+</html>
