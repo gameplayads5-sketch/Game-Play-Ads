@@ -1,240 +1,324 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Ludo Tournament Live Test — Fixed</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GameNest BD • Ludo Live</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f7fb;color:#18212f}.app{max-width:520px;margin:auto;padding:14px}.card{background:#fff;border:1px solid #dfe5ee;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 14px #0000000a}h1,h2,h3{margin:0 0 8px}.muted{color:#697586;font-size:13px}.hidden{display:none!important}input{width:100%;padding:13px;border:1px solid #ccd5e1;border-radius:12px;font-size:16px;margin:6px 0}button{border:0;border-radius:12px;padding:12px 15px;font-weight:700;background:#1769e0;color:white;margin:4px 2px;cursor:pointer}button.secondary{background:#e8eef8;color:#19304f}button.danger{background:#d92d20}button:disabled{opacity:.55;cursor:not-allowed}.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef3fa;font-size:12px}.notice{padding:10px;border-radius:12px;background:#f0f6ff;margin-top:10px;font-size:13px}.players{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.player{padding:12px;border:1px solid #dfe5ee;border-radius:14px}.tabs{display:flex;gap:6px;margin:10px 0}.tabs button{flex:1}.tabs .active{background:#1769e0;color:#fff}.board{width:min(92vw,430px);aspect-ratio:1;margin:14px auto;border:5px solid #222;border-radius:16px;display:grid;grid-template-columns:repeat(11,1fr);overflow:hidden;background:#fff}.cell{border:1px solid #d8dce3;display:flex;align-items:center;justify-content:center;font-size:11px;position:relative}.homeR{background:#ffd8d8}.homeG{background:#d8f4df}.homeY{background:#fff0b8}.homeB{background:#d8e9ff}.path{background:#fff}.center{grid-column:5/8;grid-row:5/8;background:#e8edf4;font-size:22px;font-weight:900}.token{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px #0006;position:absolute}.red{background:#e53935}.blue{background:#2878d8}.status{font-weight:700}.smallbtn{padding:9px 11px;font-size:13px}.success{color:#087f5b}.error{color:#c92a2a}
+:root{--bg:#0b1020;--card:#121a30;--card2:#18223d;--line:#2b385c;--text:#f5f7ff;--muted:#aab4d0;--accent:#6ee7b7;--danger:#ff6b7a;--gold:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#080c18,#10182c);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Noto Sans Bengali,sans-serif}
+button,input{font:inherit}button{cursor:pointer;border:0}.wrap{max-width:900px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.brand{font-size:22px;font-weight:800}.pill{padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px}
+.card{background:rgba(18,26,48,.96);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 12px 40px #0004;margin-bottom:12px}.hidden{display:none!important}
+h2,h3,p{margin-top:0}.muted{color:var(--muted)}.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1}.field{margin-bottom:10px}.field label{display:block;color:var(--muted);font-size:13px;margin-bottom:5px}.field input{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0c1325;color:#fff;outline:none}
+.btn{padding:12px 16px;border-radius:12px;background:#243454;color:#fff;font-weight:700}.btn.primary{background:var(--accent);color:#062218}.btn.danger{background:#5b2230}.btn.gold{background:var(--gold);color:#241b00}.btn:disabled{opacity:.45;cursor:not-allowed}
+.tabs{display:flex;gap:8px;margin-bottom:12px}.tab{flex:1}.tab.active{background:#31446f}
+.status{padding:10px 12px;border-radius:12px;background:#0d1528;border:1px solid var(--line);color:var(--muted);font-size:13px}
+.players{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}.player{padding:10px;border-radius:14px;background:#0d1528;border:1px solid var(--line);text-align:center}.pname{font-weight:800}.badge{font-size:11px;color:var(--muted)}.vs{color:var(--gold);font-weight:900}
+.gamebar{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin:10px 0}.dice{width:64px;height:64px;border-radius:16px;background:#fff;color:#111;display:grid;place-items:center;font-size:30px;font-weight:900;box-shadow:0 8px 20px #0005}
+.boardWrap{display:flex;justify-content:center}.board{width:min(92vw,560px);aspect-ratio:1;display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);gap:2px;background:#273453;padding:5px;border-radius:18px;touch-action:manipulation}
+.cell{position:relative;background:#e9edf7;border-radius:3px;display:grid;place-items:center;font-size:10px;color:#1b2440}
+.homeR{background:#ff8f9b}.homeB{background:#7eb5ff}.path{background:#f8fafc}.safe{background:#d7c7ff!important}.center{background:#ffd166!important}.laneR{background:#ffb2bb!important}.laneB{background:#a9ccff!important}
+.token{width:72%;height:72%;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 5px #0006;z-index:2}.token.r{background:#e63946}.token.b{background:#2879e8}.token.legal{outline:3px solid var(--gold);transform:scale(1.08)}
+.homeToken{font-size:9px;font-weight:800}
+.controls{display:flex;gap:8px;justify-content:center;margin-top:10px}.legend{display:flex;justify-content:center;gap:18px;color:var(--muted);font-size:12px;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#10192e;border:1px solid var(--line);padding:12px 16px;border-radius:12px;display:none;z-index:20;max-width:90%}
+.modal{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:18px;z-index:30}.modalbox{max-width:430px;width:100%;background:#121a30;border:1px solid var(--line);border-radius:18px;padding:18px;text-align:center}
+@media(max-width:520px){.wrap{padding:10px}.card{padding:12px;border-radius:15px}.brand{font-size:19px}.board{width:96vw;gap:1px;padding:3px}.players{gap:4px}.gamebar{grid-template-columns:1fr 64px 1fr}.btn{padding:11px 12px}}
 </style>
 </head>
 <body>
-<div class="app">
-<section id="auth" class="card">
-<h1>🎲 Ludo Tournament</h1>
-<p class="muted">Live Firebase 1v1 test • কোনো টাকা/প্রাইজ নেই</p>
-<div class="tabs"><button id="tabLogin" class="active">Login</button><button id="tabSignup" class="secondary">নতুন Sign Up</button></div>
-<div id="loginBox">
-<h3>আগের অ্যাকাউন্টে Login</h3>
-<input id="lPhone" inputmode="numeric" placeholder="মোবাইল নম্বর">
-<input id="lPin" inputmode="numeric" maxlength="12" placeholder="PIN (৬–১২ সংখ্যা)" type="password">
-<button id="loginBtn">🔐 Login</button>
-<p class="muted">একবার Sign Up করার পর একই মোবাইল + PIN দিয়ে পরবর্তীতে শুধু Login করবেন।</p>
-</div>
-<div id="signupBox" class="hidden">
-<h3>নতুন অ্যাকাউন্ট</h3>
-<input id="sName" placeholder="আপনার নাম">
-<input id="sPhone" inputmode="numeric" placeholder="মোবাইল নম্বর">
-<input id="sPin" inputmode="numeric" maxlength="12" placeholder="PIN (৬–১২ সংখ্যা)" type="password">
-<button id="signupBtn">✅ Sign Up & Enter</button>
-<p class="muted">Sign Up সফল হলে আবার Sign Up করতে হবে না—অ্যাকাউন্টটি Login-এর জন্য সংরক্ষিত থাকবে।</p>
-</div>
-<p id="authMsg" class="muted"></p>
-</section>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">🎲 GameNest BD • Ludo Live</div>
+    <div id="authPill" class="pill">অফলাইন</div>
+  </div>
 
-<section id="lobby" class="card hidden">
-<div class="row"><div><h2>🏆 Tournament Lobby</h2><p id="hello" class="muted"></p></div><span class="badge">LIVE TEST</span></div>
-<div class="card">
-<h3>Ludo 1v1 Practice</h3><p class="muted">দুইজন আলাদা account থেকে Join করলে অটোমেটিক match হবে। Tournament full হয়ে আটকে থাকবে না—match শেষ হলে নতুন player আবার join করতে পারবে।</p>
-<div class="players"><div class="player">Player 1<br><b id="p1">Waiting...</b></div><div class="player">Player 2<br><b id="p2">Waiting...</b></div></div>
-<button id="joinBtn">🎮 Join Tournament</button>
-<button id="logoutBtn" class="secondary">Logout</button>
-<p id="lobbyMsg" class="muted"></p>
-</div></section>
+  <section id="authView" class="card">
+    <h2>লুডু অ্যাকাউন্ট</h2>
+    <p class="muted">মোবাইল নম্বর + ৬–১২ ডিজিট PIN দিয়ে সাইন আপ / লগইন করুন।</p>
+    <div class="tabs">
+      <button id="loginTab" class="btn tab active">লগইন</button>
+      <button id="signupTab" class="btn tab">সাইন আপ</button>
+    </div>
+    <div id="nameField" class="field hidden"><label>নাম</label><input id="name" placeholder="আপনার নাম"></div>
+    <div class="field"><label>মোবাইল নম্বর</label><input id="phone" inputmode="tel" placeholder="01XXXXXXXXX"></div>
+    <div class="field"><label>PIN (৬–১২ ডিজিট)</label><input id="pin" type="password" inputmode="numeric" maxlength="12" placeholder="******"></div>
+    <button id="authBtn" class="btn primary" style="width:100%">লগইন</button>
+    <div id="authMsg" class="status" style="margin-top:10px">Firebase সংযোগ প্রস্তুত হচ্ছে…</div>
+  </section>
 
-<section id="game" class="card hidden">
-<div class="row"><div><h2>🎮 Match Room</h2><p class="muted">Room: <span id="roomIdText"></span></p></div><span id="turnBadge" class="badge">Waiting...</span></div>
-<div class="players"><div class="player">🔴 Player 1<br><b id="gP1">-</b></div><div class="player">🔵 Player 2<br><b id="gP2">-</b></div></div>
-<div class="notice">লাইভ টেস্ট: দুই ডিভাইস/ব্রাউজারে দুইটি আলাদা account দিয়ে Login করে Join করুন।</div>
-<div id="board" class="board"></div>
-<div class="row"><button id="rollBtn">🎲 Roll Dice</button><span class="badge">Dice: <b id="dice">-</b></span><span class="badge">Turn: <b id="turnName">-</b></span></div>
-<p id="gameMsg" class="muted">Opponent join করলে ম্যাচ শুরু হবে।</p>
-<button id="leaveBtn" class="danger">Leave Match</button>
-</section>
+  <section id="lobbyView" class="hidden">
+    <div class="card">
+      <div class="top"><div><h2 style="margin-bottom:3px">লবি</h2><div id="profileLine" class="muted"></div></div><button id="logoutBtn" class="btn">লগআউট</button></div>
+      <div id="lobbyStatus" class="status">ম্যাচ খোঁজার জন্য প্রস্তুত।</div>
+      <div class="controls"><button id="findBtn" class="btn primary">🔎 ম্যাচ খুঁজুন</button><button id="cancelBtn" class="btn danger hidden">✕ বাতিল</button></div>
+    </div>
+    <div class="card">
+      <h3>গেমের নিয়ম</h3>
+      <ul class="muted">
+        <li>১ বনাম ১ ম্যাচ।</li><li>৬ পেলে ঘর থেকে গুটি বের হবে।</li><li>Dice অনুযায়ী বৈধ গুটি ট্যাপ করে চাল দিতে হবে।</li>
+        <li>প্রতিপক্ষের গুটি ধরলে সেটি ঘরে ফিরে যাবে।</li><li>নিরাপদ ঘরে গুটি ধরা যাবে না।</li><li>৬ পেলে অতিরিক্ত টার্ন।</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="gameView" class="hidden">
+    <div class="card">
+      <div class="players">
+        <div id="p1" class="player"><div class="pname">Player 1</div><div class="badge">🔴</div></div>
+        <div class="vs">VS</div>
+        <div id="p2" class="player"><div class="pname">Player 2</div><div class="badge">🔵</div></div>
+      </div>
+      <div class="gamebar">
+        <div id="turnText" class="status">Turn —</div>
+        <div id="dice" class="dice">–</div>
+        <div id="scoreText" class="status" style="text-align:right">0 / 0</div>
+      </div>
+      <div id="gameMsg" class="status" style="margin-bottom:10px">ম্যাচ প্রস্তুত…</div>
+      <div class="boardWrap"><div id="board" class="board"></div></div>
+      <div class="legend"><span>🔴 Player 1</span><span>🔵 Player 2</span><span>⭐ Safe</span></div>
+      <div class="controls">
+        <button id="rollBtn" class="btn gold">🎲 Dice Roll</button>
+        <button id="leaveBtn" class="btn danger">ম্যাচ ছাড়ুন</button>
+      </div>
+    </div>
+  </section>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
-<script>
-const firebaseConfig={
- apiKey:"AIzaSyD2DBF_GTIkQfa6G_3gZLfZ5n0MaUEBQ48",
- authDomain:"gamenest-bd.firebaseapp.com",
- databaseURL:"https://gamenest-bd-default-rtdb.asia-southeast1.firebasedatabase.app",
- projectId:"gamenest-bd",
- storageBucket:"gamenest-bd.firebasestorage.app",
- messagingSenderId:"1020093526765",
- appId:"1:1020093526765:web:525b5f303e0f08d7b692e4",
- measurementId:"G-Z66KWE43M6"
+<div id="modal" class="modal hidden"><div class="modalbox"><h2 id="modalTitle">ফলাফল</h2><p id="modalText" class="muted"></p><button id="modalBtn" class="btn primary">ঠিক আছে</button></div></div>
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getDatabase, ref, get, set, update, remove, onValue, runTransaction, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD2DBF_GTIkQfa6G_3gZLfZ5n0MaUEBQ48",
+  authDomain: "gamenest-bd.firebaseapp.com",
+  databaseURL: "https://gamenest-bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "gamenest-bd",
+  storageBucket: "gamenest-bd.firebasestorage.app",
+  messagingSenderId: "1020093526765",
+  appId: "1:1020093526765:web:525b5f303e0f08d7b692e4",
+  measurementId: "G-Z66KWE43M6"
 };
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(),db=firebase.database(),$=id=>document.getElementById(id);
-let currentUser=null,profile=null,roomId=null,roomRef=null,roomData=null,lobbyUnsub=null,roomUnsub=null;
 
-// গুরুত্বপূর্ণ: একই browser/device-এ Login session স্থায়ী থাকবে। Firebase web-এ LOCAL persistence refresh/close-এর পরও session ধরে রাখে।
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
-function msg(t,ok=false){$("authMsg").textContent=t;$("authMsg").className='muted '+(ok?'success':'error')}
-function emailFromPhone(phone){return phone.replace(/\D/g,'')+'@ludo-test.local'}
-function validPhone(p){return /^\d{8,15}$/.test(p.replace(/\D/g,''))}
-function validPin(p){return /^\d{6,12}$/.test(p)}
-function showTab(tab){
- const login=tab==='login';
- $('loginBox').classList.toggle('hidden',!login);$('signupBox').classList.toggle('hidden',login);
- $('tabLogin').classList.toggle('active',login);$('tabSignup').classList.toggle('active',!login);
- $('tabLogin').classList.toggle('secondary',!login);$('tabSignup').classList.toggle('secondary',login);msg('');
-}
-$('tabLogin').onclick=()=>showTab('login');$('tabSignup').onclick=()=>showTab('signup');
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app), db=getDatabase(app);
+const $=id=>document.getElementById(id);
+const state={user:null,profile:null,mode:'login',queueUnsub:null,roomUnsub:null,roomId:null,room:null,rolling:false};
+const emailForPhone=p=>p.replace(/\D/g,'')+"@ludo-test.local";
+const cleanPhone=p=>p.replace(/\D/g,'');
+const toast=m=>{const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(window.__tt);window.__tt=setTimeout(()=>t.style.display='none',2600)};
+const showAuthMsg=m=>$('authMsg').textContent=m;
+function show(view){['authView','lobbyView','gameView'].forEach(v=>$(v).classList.toggle('hidden',v!==view))}
+function modal(t,m,cb){$('modalTitle').textContent=t;$('modalText').textContent=m;$('modal').classList.remove('hidden');$('modalBtn').onclick=()=>{$('modal').classList.add('hidden');cb&&cb()}}
+function validate(){const p=cleanPhone($('phone').value), pin=$('pin').value.trim();if(p.length<10||p.length>15)return 'সঠিক মোবাইল নম্বর দিন।';if(!/^\d{6,12}$/.test(pin))return 'PIN ৬–১২ ডিজিট হতে হবে।';if(state.mode==='signup'&&$('name').value.trim().length<2)return 'নাম দিন।';return null}
 
-$('signupBtn').onclick=async()=>{
- const name=$('sName').value.trim(),phone=$('sPhone').value.trim(),pin=$('sPin').value.trim();
- if(!name||!validPhone(phone)||!validPin(pin)){msg('সঠিক নাম, মোবাইল নম্বর এবং ৬–১২ সংখ্যার PIN দিন।');return}
- $('signupBtn').disabled=true;msg('Account তৈরি হচ্ছে…');
+$('loginTab').onclick=()=>{state.mode='login';$('loginTab').classList.add('active');$('signupTab').classList.remove('active');$('nameField').classList.add('hidden');$('authBtn').textContent='লগইন'};
+$('signupTab').onclick=()=>{state.mode='signup';$('signupTab').classList.add('active');$('loginTab').classList.remove('active');$('nameField').classList.remove('hidden');$('authBtn').textContent='সাইন আপ'};
+
+$('authBtn').onclick=async()=>{
+ const err=validate();if(err){showAuthMsg(err);return}
+ const phone=cleanPhone($('phone').value), pin=$('pin').value.trim(), email=emailForPhone(phone);
+ $('authBtn').disabled=true;showAuthMsg('অপেক্ষা করুন…');
  try{
-   const cred=await auth.createUserWithEmailAndPassword(emailFromPhone(phone),pin);
-   await db.ref('users/'+cred.user.uid).set({uid:cred.user.uid,name,phone:phone.replace(/\D/g,''),createdAt:firebase.database.ServerValue.TIMESTAMP});
-   // createUser সফল হলে Firebase user-কে নিজে থেকেই signed-in রাখে; তাই আবার Login/Sign Up দরকার নেই।
-   msg('✅ Sign Up সফল। আপনাকে সরাসরি Lobby-তে নেওয়া হচ্ছে।',true);
- }catch(e){
-   const m=(e.code==='auth/email-already-in-use')?'এই মোবাইল নম্বর দিয়ে account আগে থেকেই আছে। Login tab-এ গিয়ে একই PIN দিয়ে Login করুন।':e.message;
-   msg(m);
- }finally{$('signupBtn').disabled=false}
+   if(state.mode==='signup'){
+     const c=await createUserWithEmailAndPassword(auth,email,pin);
+     await set(ref(db,'users/'+c.user.uid),{name:$('name').value.trim(),phone,createdAt:serverTimestamp()});
+     showAuthMsg('সাইন আপ সফল।');
+   }else{
+     await signInWithEmailAndPassword(auth,email,pin);showAuthMsg('লগইন সফল।');
+   }
+ }catch(e){showAuthMsg('Firebase: '+(e.code||e.message));}
+ finally{$('authBtn').disabled=false}
 };
 
-$('loginBtn').onclick=async()=>{
- const phone=$('lPhone').value.trim(),pin=$('lPin').value.trim();
- if(!validPhone(phone)||!validPin(pin)){msg('মোবাইল নম্বর ও ৬–১২ সংখ্যার PIN দিন।');return}
- $('loginBtn').disabled=true;msg('Login হচ্ছে…');
- try{await auth.signInWithEmailAndPassword(emailFromPhone(phone),pin);msg('✅ Login সফল।',true)}
- catch(e){msg(e.code==='auth/invalid-credential'?'মোবাইল/PIN সঠিক নয়।':e.message)}finally{$('loginBtn').disabled=false}
-};
+$('logoutBtn').onclick=async()=>{await leaveQueue();await signOut(auth)};
+$('findBtn').onclick=startMatchmaking;
+$('cancelBtn').onclick=leaveQueue;
+$('rollBtn').onclick=rollDice;
+$('leaveBtn').onclick=()=>modal('ম্যাচ ছাড়বেন?','আপনি ম্যাচ ছেড়ে লবিতে ফিরে যাবেন।',leaveRoom);
 
-async function loadProfile(u){
- const snap=await db.ref('users/'+u.uid).get();
- profile=snap.val();
- if(!profile){
-   profile={uid:u.uid,name:'Player',phone:''};
-   await db.ref('users/'+u.uid).set(profile);
- }
-}
-function enterLobby(){
- $('auth').classList.add('hidden');$('game').classList.add('hidden');$('lobby').classList.remove('hidden');
- $('hello').textContent='স্বাগতম, '+profile.name;
- listenMatchmaking();
-}
-function enterAuth(){
- $('lobby').classList.add('hidden');$('game').classList.add('hidden');$('auth').classList.remove('hidden');
- showTab('login');
-}
-
-auth.onAuthStateChanged(async u=>{
- if(!u){currentUser=null;profile=null;enterAuth();return}
- currentUser=u;await loadProfile(u);enterLobby();
+onAuthStateChanged(auth,async u=>{
+ if(state.queueUnsub)state.queueUnsub();
+ if(state.roomUnsub)state.roomUnsub();
+ state.user=u;state.room=null;state.roomId=null;
+ if(!u){$('authPill').textContent='অফলাইন';show('authView');return}
+ $('authPill').textContent='🟢 '+u.email.split('@')[0];
+ const snap=await get(ref(db,'users/'+u.uid));
+ state.profile=snap.val()||{name:'Player',phone:''};
+ $('profileLine').textContent=`${state.profile.name} • ${state.profile.phone}`;
+ show('lobbyView');
+ await recoverRoom();
 });
 
-// একটিমাত্র permanent tournament slot নয়; এটি একটি reusable live matchmaking slot।
-function listenMatchmaking(){
- if(lobbyUnsub) lobbyUnsub();
- const ref=db.ref('matchmaking/current');
- const handler=snap=>{
-   const t=snap.val();
-   $('p1').textContent=t?.player1?.name||'Waiting...';
-   $('p2').textContent=t?.player2?.name||'Waiting...';
-   if(t?.status==='matched'&&t.roomId&&(t.player1?.uid===currentUser.uid||t.player2?.uid===currentUser.uid)){
-     roomId=t.roomId;openRoom(roomId);
-   }
-   if(t?.status==='matched'&&!t?.roomId){$('lobbyMsg').textContent='Match প্রস্তুত হচ্ছে…'}
- };
- ref.on('value',handler);lobbyUnsub=()=>ref.off('value',handler);
+async function recoverRoom(){
+ const q=await get(ref(db,'matchmaking/current'));
+ const t=q.val();
+ if(t && (t.player1?.uid===state.user.uid||t.player2?.uid===state.user.uid) && t.roomId){openRoom(t.roomId);return}
+ const rs=await get(ref(db,'rooms'));
+ const all=rs.val()||{};
+ for(const [rid,r] of Object.entries(all)){if(r?.player1?.uid===state.user.uid||r?.player2?.uid===state.user.uid){openRoom(rid);return}}
 }
 
-$('joinBtn').onclick=async()=>{
- if(!currentUser||!profile)return;
- $('joinBtn').disabled=true;$('lobbyMsg').textContent='Opponent খোঁজা হচ্ছে…';
- const ref=db.ref('matchmaking/current');
- try{
-  const result=await ref.transaction(t=>{
-   // যদি আগের matched slot এখনও থাকে, নতুন player তাকে overwrite করতে পারবে না।
-   if(t?.status==='matched') return;
-   if(t?.player1?.uid===currentUser.uid||t?.player2?.uid===currentUser.uid)return t;
-   if(!t?.player1){return {status:'waiting',player1:{uid:currentUser.uid,name:profile.name}}}
-   if(!t?.player2){
-     const rid='room_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
-     return {status:'matched',roomId:rid,player1:t.player1,player2:{uid:currentUser.uid,name:profile.name},matchedAt:firebase.database.ServerValue.TIMESTAMP};
+async function startMatchmaking(){
+ const u=state.user;if(!u)return;
+ $('findBtn').classList.add('hidden');$('cancelBtn').classList.remove('hidden');$('lobbyStatus').textContent='⏳ প্রতিপক্ষ খোঁজা হচ্ছে…';
+ const me={uid:u.uid,name:state.profile.name};
+ const qref=ref(db,'matchmaking/current');
+ await onDisconnect(qref).cancel();
+ const result=await runTransaction(qref,cur=>{
+   if(!cur)return {player1:me,player2:null,status:'waiting',roomId:null,createdAt:Date.now()};
+   if(cur.player1?.uid===u.uid||cur.player2?.uid===u.uid)return cur;
+   if(cur.player1&&!cur.player2)return {...cur,player2:me,status:'matched'};
+   return {player1:me,player2:null,status:'waiting',roomId:null,createdAt:Date.now()};
+ });
+ const t=result.snapshot.val();
+ if(t?.player1&&t?.player2){
+   const rid=t.roomId||roomKey(t.player1.uid,t.player2.uid);
+   await update(qref,{roomId:rid,status:'matched'});
+   await ensureRoom(rid,t);
+   openRoom(rid);
+ }else watchQueue();
+}
+function roomKey(a,b){return 'room_'+[a,b].sort().join('_')}
+function watchQueue(){
+ state.queueUnsub=onValue(ref(db,'matchmaking/current'),async s=>{
+  const t=s.val();if(!t)return;
+  if(t.player1?.uid===state.user.uid||t.player2?.uid===state.user.uid){
+   if(t.player1&&t.player2){
+    const rid=t.roomId||roomKey(t.player1.uid,t.player2.uid);
+    await update(ref(db,'matchmaking/current'),{roomId:rid,status:'matched'});
+    await ensureRoom(rid,t);openRoom(rid);
    }
-   return;
-  });
-  const v=result.snapshot.val();
-  if(!result.committed){$('lobbyMsg').textContent='এই মুহূর্তে Matchmaking slot ব্যস্ত। ২–৩ সেকেন্ড পর আবার Join চাপুন।';return}
-  if(v?.roomId&&(v.player1?.uid===currentUser.uid||v.player2?.uid===currentUser.uid)){roomId=v.roomId;openRoom(roomId);return}
-  $('lobbyMsg').textContent='✅ আপনি Waiting list-এ আছেন। অন্য player Join করলেই match হবে।';
- }catch(e){$('lobbyMsg').textContent='❌ Join হয়নি: '+e.message}
- finally{$('joinBtn').disabled=false}
-};
-
-async function openRoom(rid){
- if(roomUnsub)roomUnsub();
- $('lobby').classList.add('hidden');$('game').classList.remove('hidden');$('roomIdText').textContent=rid;
- roomRef=db.ref('rooms/'+rid);
- const t=(await db.ref('matchmaking/current').get()).val();
- if(t?.roomId===rid&&t.player1&&t.player2){
-   await roomRef.transaction(r=>r&&r.player1&&r.player2?r:{player1:t.player1,player2:t.player2,status:'playing',turn:t.player1.uid,dice:null,createdAt:firebase.database.ServerValue.TIMESTAMP});
- }
- const handler=snap=>{roomData=snap.val();if(roomData)renderRoom(roomData)};
- roomRef.on('value',handler);roomUnsub=()=>roomRef.off('value',handler);
- // Match তৈরি হওয়ার কয়েক সেকেন্ড পর matchmaking slot খালি হবে, তাই নতুন player আর 'Tournament full' এ আটকে থাকবে না।
- setTimeout(async()=>{
-   try{
-     const mref=db.ref('matchmaking/current');
-     await mref.transaction(t=>{
-       if(t?.roomId===rid && (t.player1?.uid===currentUser.uid || t.player2?.uid===currentUser.uid)) return null;
-       return t;
-     });
-   }catch(e){console.warn('matchmaking reset',e)}
- },5000);
+  }
+ });
 }
-function renderRoom(r){
- $('gP1').textContent=r.player1?.name||'Waiting...';$('gP2').textContent=r.player2?.name||'Waiting...';$('dice').textContent=r.dice??'-';
- const turn=r.turn||'',mine=turn===currentUser.uid;
- $('turnBadge').textContent=mine?'🟢 Your turn':'⏳ Opponent turn';
- $('turnName').textContent=mine?profile.name:(turn===r.player1?.uid?r.player1?.name:r.player2?.name)||'-';
- $('gameMsg').textContent=r.status==='playing'?(mine?'আপনার পালা। Dice Roll করুন।':'প্রতিপক্ষের পালা।'):'Match waiting…';
- drawBoard(r);
+async function leaveQueue(){
+ try{await remove(ref(db,'matchmaking/current'))}catch{}
+ if(state.queueUnsub){state.queueUnsub();state.queueUnsub=null}
+ $('findBtn').classList.remove('hidden');$('cancelBtn').classList.add('hidden');$('lobbyStatus').textContent='ম্যাচ খোঁজার জন্য প্রস্তুত।';
 }
-function drawBoard(r){
+function baseTokens(){return {p1:[-1,-1,-1,-1],p2:[-1,-1,-1,-1]}}
+async function ensureRoom(rid,t){
+ const rr=ref(db,'rooms/'+rid),s=await get(rr);if(s.exists())return;
+ await set(rr,{player1:t.player1,player2:t.player2,status:'playing',turn:t.player1.uid,dice:null,diceBy:null,tokens:baseTokens(),winner:null,lastMove:null,createdAt:serverTimestamp()});
+}
+function openRoom(rid){
+ state.roomId=rid;show('gameView');
+ if(state.roomUnsub)state.roomUnsub();
+ state.roomUnsub=onValue(ref(db,'rooms/'+rid),s=>{state.room=s.val();if(!state.room){toast('ম্যাচ শেষ হয়েছে।');show('lobbyView');return}renderRoom()});
+}
+function mySide(){if(!state.room)return null;return state.room.player1?.uid===state.user.uid?'p1':state.room.player2?.uid===state.user.uid?'p2':null}
+const START={p1:0,p2:26}, SAFE=new Set([0,8,13,21,26,34,39,47]);
+function posOnTrack(side,step){return (START[side]+step)%52}
+function legalMoves(side,dice){
+ const toks=state.room.tokens?.[side]||[-1,-1,-1,-1],out=[];
+ toks.forEach((p,i)=>{
+   if(p===57)return;
+   if(p===-1){if(dice===6)out.push(i)}
+   else if(p+dice<=57)out.push(i);
+ });
+ return out;
+}
+function trackCell(step){return posOnTrack('p1',step)}
+function cellForTrack(step){
+ const path=[];
+ // 52 cells around a 15x15 ring. Coordinates are deliberately clear and stable.
+ for(let c=1;c<=13;c++)path.push([6,c]);
+ for(let r=7;r<=13;r++)path.push([r,13]);
+ for(let c=12;c>=1;c--)path.push([13,c]);
+ for(let r=12;r>=1;r--)path.push([r,1]);
+ for(let c=2;c<=13;c++)path.push([1,c]);
+ for(let r=2;r<=6;r++)path.push([r,13]);
+ return path[step%path.length]||[6,1];
+}
+function homeCoords(side,index){
+ const maps={p1:[[2,2],[2,4],[4,2],[4,4]],p2:[[10,10],[10,12],[12,10],[12,12]]};
+ return maps[side][index];
+}
+function finishCoords(side,index){
+ const maps={p1:[[6,5],[6,6],[6,7],[6,8]],p2:[[8,5],[8,6],[8,7],[8,8]]};
+ return maps[side][index];
+}
+function drawBoard(){
  const b=$('board');b.innerHTML='';
- for(let i=0;i<121;i++){
-  const c=document.createElement('div');c.className='cell';const row=Math.floor(i/11),col=i%11;
-  if(row<3&&col<3)c.classList.add('homeR');else if(row<3&&col>7)c.classList.add('homeG');else if(row>7&&col<3)c.classList.add('homeB');else if(row>7&&col>7)c.classList.add('homeY');else c.classList.add('path');
-  if(row>=4&&row<=6&&col>=4&&col<=6){c.className='cell center';c.textContent='★'}
-  if(i===5&&r.player1){const x=document.createElement('span');x.className='token red';c.appendChild(x)}
-  if(i===115&&r.player2){const x=document.createElement('span');x.className='token blue';c.appendChild(x)}
-  b.appendChild(c);
+ const cells={};
+ for(let r=0;r<15;r++)for(let c=0;c<15;c++){
+  const el=document.createElement('div');el.className='cell';
+  if(r<6&&c<6)el.classList.add('homeR'); else if(r>8&&c>8)el.classList.add('homeB'); else el.classList.add('path');
+  if(r===6&&c===7||r===7&&c===6||r===7&&c===8||r===8&&c===7)el.classList.add('center');
+  const key=r+','+c;cells[key]=el;b.appendChild(el);
+ }
+ // 52-track
+ const path=[];for(let c=1;c<=13;c++)path.push([6,c]);for(let r=7;r<=13;r++)path.push([r,13]);for(let c=12;c>=1;c--)path.push([13,c]);for(let r=12;r>=1;r--)path.push([r,1]);for(let c=2;c<=13;c++)path.push([1,c]);for(let r=2;r<=6;r++)path.push([r,13]);
+ const uniq=[];const seen=new Set();path.forEach(x=>{const k=x[0]+','+x[1];if(!seen.has(k)){seen.add(k);uniq.push(x)}}); // 52-ish ring
+ uniq.slice(0,52).forEach((xy,i)=>{cells[xy[0]+','+xy[1]].classList.add('path');if(SAFE.has(i))cells[xy[0]+','+xy[1]].classList.add('safe');});
+ const r=state.room;if(!r)return;
+ for(const side of ['p1','p2'])for(let i=0;i<4;i++){
+   const p=(r.tokens?.[side]||[-1,-1,-1,-1])[i];let xy;
+   if(p===-1)xy=homeCoords(side,i);
+   else if(p>=52)xy=finishCoords(side,i);
+   else xy=uniq[p%uniq.length];
+   const el=cells[xy[0]+','+xy[1]];if(!el)continue;
+   const t=document.createElement('div');t.className='token '+(side==='p1'?'r':'b');
+   const mine=mySide()===side, legal=mine&&r.turn===state.user.uid&&r.dice!=null&&legalMoves(side,r.dice).includes(i);
+   if(legal)t.classList.add('legal');
+   t.title=legal?'চাল দিতে ট্যাপ করুন':'';
+   t.onclick=e=>{e.stopPropagation();if(legal)moveToken(side,i)};
+   el.appendChild(t);
  }
 }
-$('rollBtn').onclick=async()=>{
- if(!roomData||roomData.status!=='playing'){return}
- if(roomData.turn!==currentUser.uid){$('gameMsg').textContent='এখন আপনার পালা নয়।';return}
- const n=Math.floor(Math.random()*6)+1,next=roomData.player1?.uid===currentUser.uid?roomData.player2?.uid:roomData.player1?.uid;
- await roomRef.update({dice:n,lastRollBy:currentUser.uid,turn:next});
-};
-
-async function resetMatchmakingIfMine(){
- try{
-  const ref=db.ref('matchmaking/current');
-  await ref.transaction(t=>{
-   if(t&&t.roomId===roomId&&(t.player1?.uid===currentUser.uid||t.player2?.uid===currentUser.uid))return null;
-   return t;
-  });
- }catch(e){console.warn(e)}
+function renderRoom(){
+ const r=state.room,side=mySide();
+ $('p1').querySelector('.pname').textContent=r.player1?.name||'Waiting…';
+ $('p2').querySelector('.pname').textContent=r.player2?.name||'Waiting…';
+ $('dice').textContent=r.dice??'–';
+ const mine=r.turn===state.user.uid;
+ $('turnText').textContent=mine?'🟢 আপনার পালা':'⏳ '+(r.turn===r.player1?.uid?r.player1?.name:r.player2?.name||'Opponent')+' এর পালা';
+ $('scoreText').textContent=`${countFinish(r.p1)} / ${countFinish(r.p2)}`;
+ $('gameMsg').textContent=r.winner?(r.winner===state.user.uid?'🏆 আপনি জিতেছেন!':'😔 আপনি হেরেছেন।'):r.dice?(mine?'বৈধ গুটি ⭐ চিহ্ন দিয়ে দেখানো আছে। ট্যাপ করুন।':'প্রতিপক্ষ চাল দিচ্ছে…'):(mine?'🎲 Dice Roll করুন।':'প্রতিপক্ষের Dice-এর অপেক্ষা করুন।');
+ $('rollBtn').disabled=!mine||r.dice!=null||!!r.winner;
+ drawBoard();
+ if(r.winner&&!state._resultShown){state._resultShown=true;modal(r.winner===state.user.uid?'🏆 অভিনন্দন!':'ম্যাচ শেষ',r.winner===state.user.uid?'আপনি ম্যাচ জিতেছেন!':'প্রতিপক্ষ জিতেছে।',()=>leaveRoom());}
 }
-$('leaveBtn').onclick=async()=>{
- if(roomUnsub)roomUnsub();
- await resetMatchmakingIfMine();
- roomId=null;roomData=null;roomRef=null;
- $('game').classList.add('hidden');$('lobby').classList.remove('hidden');$('lobbyMsg').textContent='আপনি match থেকে বের হয়েছেন। নতুন match-এর জন্য Join Tournament চাপুন।';
- listenMatchmaking();
-};
-$('logoutBtn').onclick=async()=>{if(lobbyUnsub)lobbyUnsub();await auth.signOut()};
+function countFinish(side){return (state.room.tokens?.[side]||[]).filter(x=>x===57).length}
+async function rollDice(){
+ const r=state.room;if(!r||r.winner||r.turn!==state.user.uid||r.dice!=null)return;
+ const n=Math.floor(Math.random()*6)+1,side=mySide(),moves=legalMoves(side,n);
+ if(!moves.length){
+   const next=n===6?state.user.uid:(side==='p1'?r.player2.uid:r.player1.uid);
+   await update(ref(db,'rooms/'+state.roomId),{dice:n,diceBy:state.user.uid,turn:next,lastMove:'no-move'});
+   if(n!==6)setTimeout(async()=>{const s=await get(ref(db,'rooms/'+state.roomId));if(s.val()?.dice===n&&s.val()?.turn===next)await update(ref(db,'rooms/'+state.roomId),{dice:null});},900);
+   return;
+ }
+ await update(ref(db,'rooms/'+state.roomId),{dice:n,diceBy:state.user.uid});
+}
+async function moveToken(side,index){
+ const r=state.room;if(!r||r.winner||r.turn!==state.user.uid||r.dice==null||mySide()!==side)return;
+ const moves=legalMoves(side,r.dice);if(!moves.includes(index))return;
+ const toks={p1:[...(r.tokens?.p1||[-1,-1,-1,-1])],p2:[...(r.tokens?.p2||[-1,-1,-1,-1])]};
+ let old=toks[side][index],next=old===-1?0:old+r.dice;if(next>57)return;
+ toks[side][index]=next;
+ // capture only while on the shared track; safe cells cannot capture.
+ if(next>=0&&next<52){
+   const myAbs=posOnTrack(side,next);
+   const other=side==='p1'?'p2':'p1';
+   for(let j=0;j<4;j++){const op=toks[other][j];if(op>=0&&op<52&&posOnTrack(other,op)===myAbs&&!SAFE.has(myAbs))toks[other][j]=-1;}
+ }
+ const won=toks[side].every(x=>x===57), nextTurn=(r.dice===6||won)?state.user.uid:(side==='p1'?r.player2.uid:r.player1.uid);
+ await update(ref(db,'rooms/'+state.roomId),{tokens:toks,dice:null,diceBy:null,turn:nextTurn,winner:won?state.user.uid:null,lastMove:{side,index,from:old,to:next,at:Date.now()}});
+}
+async function leaveRoom(){
+ const rid=state.roomId;if(state.roomUnsub){state.roomUnsub();state.roomUnsub=null}
+ state.room=null;state.roomId=null;state._resultShown=false;
+ if(rid){try{await remove(ref(db,'rooms/'+rid))}catch{}}
+ await leaveQueue();show('lobbyView');
+}
+
+showAuthMsg('Firebase সংযোগ প্রস্তুত।');
 </script>
 </body>
 </html>
