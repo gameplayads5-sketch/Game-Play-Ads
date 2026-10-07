@@ -239,32 +239,41 @@ function pos(e){
 }
 
 board.addEventListener("pointerdown",e=>{
- if(!state||!roomId||state.turn!==currentUser.uid||state.winner)return;
+ if(!state||!roomId||state.winner)return;
+ if(state.turn!==currentUser.uid){
+   gameMsg("এখন আপনার টার্ন নয় — অন্য প্লেয়ারের টার্ন।");
+   return;
+ }
+ if(state.shotActive || anyPieceMoving())return;
  const p=pos(e);
- if(dist(p,state.striker)<60){drag=true;ax=p.x;ay=p.y;board.setPointerCapture(e.pointerId);draw()}
+ if(dist(p,state.striker)<75){
+   drag=true; ax=p.x; ay=p.y;
+   try{board.setPointerCapture(e.pointerId)}catch(_){ }
+   draw();
+ }
 });
-board.addEventListener("pointermove",e=>{if(drag){const p=pos(e);ax=p.x;ay=p.y;draw()}});
-board.addEventListener("pointerup",async e=>{
- if(!drag)return;drag=false;
+board.addEventListener("pointermove",e=>{
+ if(!drag)return;
+ const p=pos(e); ax=p.x; ay=p.y; draw();
+});
+board.addEventListener("pointerup",e=>{
+ if(!drag)return;
+ drag=false;
+ try{board.releasePointerCapture(e.pointerId)}catch(_){ }
  if(!state||!roomId||state.turn!==currentUser.uid||state.winner)return;
  const p=pos(e),s=state.striker;
- const dx=s.x-p.x,dy=s.y-p.y,len=Math.hypot(dx,dy)||1;
+ const dx=s.x-p.x,dy=s.y-p.y,len=Math.hypot(dx,dy);
+ if(len<6){draw();return;}
  const power=Math.min(20,Math.max(4,len/8));
-
- // নতুন shot শুরু হলে আগের turn-এর pocket flag পরিষ্কার।
  state.turnOwnCoinPocketed=false;
- s.vx=dx/len*power;
- s.vy=dy/len*power;
+ s.vx=dx/len*power; s.vy=dy/len*power;
  state.shotActive=true;
-
- // Striker যেখানে টানা হয়েছে সেখানেই শুরু হবে; কিন্তু shooting line-এর
- // বাইরে গিয়ে শুরু করতে দেওয়া হবে না।
- const baseY=strikerBaseY(currentUser.uid,state);
- s.y=baseY;
+ s.y=strikerBaseY(currentUser.uid,state);
  s.x=Math.max(140,Math.min(660,s.x));
-
- await saveRoomState();
+ draw();
+ saveRoomState().catch(err=>gameMsg(dbError(err)));
 });
+board.addEventListener("pointercancel",()=>{drag=false;draw()});
 
 let lastPhysicsSave=0;
 
@@ -450,7 +459,7 @@ async function watchRoom(id){
 
       // পুরোনো Room-এ striker ভুল পাশে থাকলে, বর্তমান turn-এর
       // player-এর সঠিক baseline-এ একবার ঠিক করে দেওয়া হবে।
-      if(state?.turn===currentUser.uid){
+      if(state?.turn===currentUser.uid && !state?.shotActive){
         const expectedY=strikerBaseY(currentUser.uid,state);
 
         // Firebase-এ পুরোনো shot-এর striker position এলে সেটি গ্রহণ করা হবে না।
@@ -471,7 +480,8 @@ async function watchRoom(id){
         gameMsg("👑 লাল Queen নিয়েছেন — নিজের "+playerColor(currentUser.uid,state)+" গুটি দিয়ে Cover করুন");
       else if(state?.queenPending)
         gameMsg("👑 Queen Cover বাকি — Cover না হলে Queen মাঝখানে ফিরবে");
-      else if(state?.turn===currentUser.uid)gameMsg("আপনার টার্ন");
+      else if(state?.shotActive && state?.turn===currentUser.uid)gameMsg("🎯 Shot চলছে...");
+      else if(state?.turn===currentUser.uid)gameMsg("আপনার টার্ন — সবুজ striker টেনে ছেড়ে দিন");
       else gameMsg("অন্য প্লেয়ারের টার্ন");
       draw();
     },
