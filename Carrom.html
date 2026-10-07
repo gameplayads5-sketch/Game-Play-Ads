@@ -111,6 +111,23 @@ const R=22,SR=28;
 const pockets=[{x:38,y:38},{x:762,y:38},{x:38,y:762},{x:762,y:762}];
 let state=null,drag=false,ax=400,ay=690;
 
+/* প্রতিটি player-এর নিজের baseline */
+function strikerBaseY(uid, st=state){
+  const players=st?.players||[];
+  return players.indexOf(uid)===1 ? 110 : 690;
+}
+
+function resetStrikerForTurn(st=state){
+  if(!st||!st.turn)return;
+  st.striker=st.striker||{x:400,y:690,vx:0,vy:0};
+  st.striker.x=400;
+  st.striker.y=strikerBaseY(st.turn,st);
+  st.striker.vx=0;
+  st.striker.vy=0;
+  st.shotActive=false;
+  for(const c of (st.coins||[])){if(c.vx===undefined)c.vx=0;if(c.vy===undefined)c.vy=0;}
+}
+
 function cleanMobile(v){
  return String(v||"").replace(/\D/g,"");
 }
@@ -129,7 +146,56 @@ function initialState(p1){
      coins.push({id:"c"+(++n),x:400+Math.cos(a)*ring.r,y:400+Math.sin(a)*ring.r,c:n%2?"white":"black",in:false});
    }
  }
- return {players:[p1],turn:p1,striker:{x:400,y:690,vx:0,vy:0},coins,version:Date.now(),winner:null};
+ return {
+   players:[p1],
+   turn:p1,
+   striker:{x:400,y:690,vx:0,vy:0},
+   coins,
+   playerColors:{[p1]:"black"},
+   queenPending:false,
+   queenOwner:null,
+   queenCovered:false,
+   turnOwnCoinPocketed:false,
+   version:Date.now(),
+   winner:null
+ };
+}
+
+function ensureGameMeta(st){
+  if(!st)return;
+  st.players=st.players||[];
+  st.playerColors=st.playerColors||{};
+  if(st.players[0]&&!st.playerColors[st.players[0]])st.playerColors[st.players[0]]="black";
+  if(st.players[1]&&!st.playerColors[st.players[1]])st.playerColors[st.players[1]]="white";
+  if(st.queenPending===undefined)st.queenPending=false;
+  if(st.queenOwner===undefined)st.queenOwner=null;
+  if(st.queenCovered===undefined)st.queenCovered=false;
+  if(st.turnOwnCoinPocketed===undefined)st.turnOwnCoinPocketed=false;
+  if(st.shotActive===undefined)st.shotActive=false;
+
+  // পুরোনো Room-এর গুটিগুলোতে velocity না থাকলে যোগ করি।
+  for(const c of (st.coins||[])){
+    if(c.vx===undefined)c.vx=0;
+    if(c.vy===undefined)c.vy=0;
+  }
+}
+
+function playerColor(uid,st=state){
+  ensureGameMeta(st);
+  return st?.playerColors?.[uid]||"black";
+}
+
+function returnQueenToCenter(st){
+  ensureGameMeta(st);
+  const q=(st.coins||[]).find(c=>c.id==="q");
+  if(q){
+    q.in=false;
+    q.x=400;
+    q.y=400;
+  }
+  st.queenPending=false;
+  st.queenOwner=null;
+  st.queenCovered=false;
 }
 
 function draw(){
@@ -177,42 +243,136 @@ board.addEventListener("pointerdown",e=>{
 board.addEventListener("pointermove",e=>{if(drag){const p=pos(e);ax=p.x;ay=p.y;draw()}});
 board.addEventListener("pointerup",async e=>{
  if(!drag)return;drag=false;
- if(!state||state.turn!==currentUser.uid)return;
- const p=pos(e),s=state.striker,dx=s.x-p.x,dy=s.y-p.y,len=Math.hypot(dx,dy)||1;
- const power=Math.min(18,Math.max(3,len/9));
- s.vx=dx/len*power;s.vy=dy/len*power;
+ if(!state||!roomId||state.turn!==currentUser.uid||state.winner)return;
+ const p=pos(e),s=state.striker;
+ const dx=s.x-p.x,dy=s.y-p.y,len=Math.hypot(dx,dy)||1;
+ const power=Math.min(20,Math.max(4,len/8));
+
+ // নতুন shot শুরু হলে আগের turn-এর pocket flag পরিষ্কার।
+ state.turnOwnCoinPocketed=false;
+ s.vx=dx/len*power;
+ s.vy=dy/len*power;
+ state.shotActive=true;
+
+ // Striker যেখানে টানা হয়েছে সেখানেই শুরু হবে; কিন্তু shooting line-এর
+ // বাইরে গিয়ে শুরু করতে দেওয়া হবে না।
+ const baseY=strikerBaseY(currentUser.uid,state);
+ s.y=baseY;
+ s.x=Math.max(140,Math.min(660,s.x));
+
  await saveRoomState();
 });
 
+let lastPhysicsSave=0;
+
+function keepInsideBoard(o,r){
+  if(o.x-r<72){o.x=72+r;o.vx=Math.abs(o.vx)*0.82}
+  if(o.x+r>728){o.x=728-r;o.vx=-Math.abs(o.vx)*0.82}
+  if(o.y-r<72){o.y=72+r;o.vy=Math.abs(o.vy)*0.82}
+  if(o.y+r>728){o.y=728-r;o.vy=-Math.abs(o.vy)*0.82}
+}
+
+function resolveElastic(a,b,ra,rb){
+  let dx=b.x-a.x,dy=b.y-a.y;
+  let d=Math.hypot(dx,dy);
+  const minD=ra+rb;
+  if(!d||d>=minD)return false;
+  const nx=dx/d,ny=dy/d;
+  const overlap=minD-d;
+  a.x-=nx*overlap/2; a.y-=ny*overlap/2;
+  b.x+=nx*overlap/2; b.y+=ny*overlap/2;
+
+  const rvx=b.vx-a.vx,rvy=b.vy-a.vy;
+  const rel=rvx*nx+rvy*ny;
+  if(rel>=0)return true;
+
+  // সমান mass-এর প্রায় elastic collision।
+  const impulse=-rel*0.92;
+  a.vx-=impulse*nx; a.vy-=impulse*ny;
+  b.vx+=impulse*nx; b.vy+=impulse*ny;
+  return true;
+}
+
+function pocketCoin(c){
+  if(c.in)return;
+  c.in=true;c.vx=0;c.vy=0;
+
+  if(c.id==="q"){
+    state.queenPending=true;
+    state.queenOwner=currentUser.uid;
+    state.queenCovered=false;
+  }else if(c.c===playerColor(currentUser.uid,state)){
+    state.turnOwnCoinPocketed=true;
+    if(state.queenPending && state.queenOwner===currentUser.uid){
+      state.queenCovered=true;
+      state.queenPending=false;
+    }
+  }
+}
+
+function anyPieceMoving(){
+  if(Math.abs(state.striker.vx)>0.05||Math.abs(state.striker.vy)>0.05)return true;
+  return (state.coins||[]).some(c=>!c.in && (Math.abs(c.vx)>0.05||Math.abs(c.vy)>0.05));
+}
+
 function physics(){
  if(state){
-   // শুধু যার turn, সেই ফোন physics চালাবে।
-   // এতে দুই ফোন একসাথে striker/guti সরিয়ে ফেলবে না।
-   const isMyTurn = currentUser && state.turn === currentUser.uid;
+   ensureGameMeta(state);
+   const isMyTurn=currentUser && state.turn===currentUser.uid;
    const s=state.striker;
-   const moving=Math.abs(s.vx)>0.05||Math.abs(s.vy)>0.05;
 
-   if(isMyTurn && moving){
-     s.x+=s.vx;s.y+=s.vy;s.vx*=.985;s.vy*=.985;
-     if(s.x<72||s.x>728)s.vx*=-.82;
-     if(s.y<72||s.y>728)s.vy*=-.82;
+   if(isMyTurn && state.shotActive){
+     // Striker + coins সবাই নিজেদের velocity দিয়ে চলবে।
+     s.x+=s.vx;s.y+=s.vy;
+     s.vx*=0.985;s.vy*=0.985;
+     keepInsideBoard(s,SR);
 
-     for(const c of state.coins||[]){
+     for(const c of (state.coins||[])){
        if(c.in)continue;
-       const dx=c.x-s.x,dy=c.y-s.y,d=Math.hypot(dx,dy);
-       if(d>0&&d<R+SR){
-         const nx=dx/d,ny=dy/d,sp=Math.hypot(s.vx,s.vy);
-         c.x+=nx*2;c.y+=ny*2;
-         if(sp>.4){c.x+=nx*sp*.7;c.y+=ny*sp*.7}
-       }
-       if(insidePocket(c))c.in=true;
+       c.x+=c.vx;c.y+=c.vy;
+       c.vx*=0.982;c.vy*=0.982;
+       keepInsideBoard(c,R);
      }
 
-     if(insidePocket(s)){s.x=400;s.y=690;s.vx=0;s.vy=0}
+     // Striker ↔ coin collision
+     for(const c of (state.coins||[])){
+       if(c.in)continue;
+       if(resolveElastic(s,c,SR,R)){
+         const sp=Math.hypot(s.vx,s.vy);
+         if(sp<0.15){s.vx*=0.2;s.vy*=0.2}
+       }
+     }
 
-     if(Math.abs(s.vx)<.05&&Math.abs(s.vy)<.05){
+     // Coin ↔ coin collision
+     const coins=state.coins||[];
+     for(let i=0;i<coins.length;i++){
+       const a=coins[i]; if(a.in)continue;
+       for(let j=i+1;j<coins.length;j++){
+         const b=coins[j]; if(b.in)continue;
+         resolveElastic(a,b,R,R);
+       }
+     }
+
+     // Pocket detection after movement/collision.
+     for(const c of (state.coins||[])){
+       if(!c.in && insidePocket(c))pocketCoin(c);
+     }
+
+     // Striker pocket = foul; striker ফিরে যাবে।
+     if(insidePocket(s)){
+       s.x=400;s.y=strikerBaseY(currentUser.uid,state);
        s.vx=0;s.vy=0;
+     }
+
+     // সব piece থামলে shot শেষ।
+     if(!anyPieceMoving()){
+       s.vx=0;s.vy=0;
+       for(const c of (state.coins||[])){if(!c.in){c.vx=0;c.vy=0}}
+       state.shotActive=false;
        finishTurn();
+     }else if(Date.now()-lastPhysicsSave>80){
+       lastPhysicsSave=Date.now();
+       saveRoomState().catch(console.error);
      }
    }
  }
@@ -224,11 +384,30 @@ let finishing=false;
 async function finishTurn(){
  if(finishing||!state||!roomId)return;
  finishing=true;
+
+ ensureGameMeta(state);
  const active=state.players||[];
+ const oldPlayer=currentUser.uid;
+
+ // Queen নিলে নিজের colour-এর গুটি দিয়ে cover না করলে Queen মাঝখানে ফেরত।
+ if(state.queenPending && state.queenOwner===oldPlayer && !state.queenCovered){
+   returnQueenToCenter(state);
+ }else if(state.queenCovered){
+   state.queenPending=false;
+   state.queenOwner=null;
+   state.queenCovered=false;
+   state.turnOwnCoinPocketed=false;
+ }
+
+ // Shot শেষ হলে striker পরের player's fixed shooting position-এ যাবে।
  if(active.length>1){
-   const i=active.indexOf(currentUser.uid);
+   const i=active.indexOf(oldPlayer);
    if(i>=0)state.turn=active[(i+1)%active.length];
  }
+ resetStrikerForTurn(state);
+ state.shotActive=false;
+ state.turnOwnCoinPocketed=false;
+
  await saveRoomState();
  finishing=false;
 }
@@ -264,8 +443,31 @@ async function watchRoom(id){
         return;
       }
       state=v.state||null;
+      ensureGameMeta(state);
+
+      // পুরোনো Room-এ striker ভুল পাশে থাকলে, বর্তমান turn-এর
+      // player-এর সঠিক baseline-এ একবার ঠিক করে দেওয়া হবে।
+      if(state?.turn===currentUser.uid){
+        const expectedY=strikerBaseY(currentUser.uid,state);
+
+        // Firebase-এ পুরোনো shot-এর striker position এলে সেটি গ্রহণ করা হবে না।
+        // বর্তমান turn-এর player-এর fixed shooting position-এ ফেরত যাবে।
+        if(!state.striker ||
+           Math.abs((state.striker.y??expectedY)-expectedY)>2 ||
+           Math.abs((state.striker.x??400)-400)>2 ||
+           Math.abs(state.striker.vx||0)>0.001 ||
+           Math.abs(state.striker.vy||0)>0.001){
+          resetStrikerForTurn(state);
+          saveRoomState().catch(console.error);
+        }
+      }
+
       $("roomText").textContent="Room ID: "+id+" • Players: "+(state?.players?.length||0)+"/2";
       if(state?.winner)gameMsg("Winner: "+state.winner);
+      else if(state?.queenPending && state?.queenOwner===currentUser.uid)
+        gameMsg("👑 লাল Queen নিয়েছেন — নিজের "+playerColor(currentUser.uid,state)+" গুটি দিয়ে Cover করুন");
+      else if(state?.queenPending)
+        gameMsg("👑 Queen Cover বাকি — Cover না হলে Queen মাঝখানে ফিরবে");
       else if(state?.turn===currentUser.uid)gameMsg("আপনার টার্ন");
       else gameMsg("অন্য প্লেয়ারের টার্ন");
       draw();
@@ -317,6 +519,8 @@ async function joinRoom(){
     if((st.players||[]).length>=2)return gameMsg("এই Room ইতিমধ্যে পূর্ণ");
 
     st.players=[...(st.players||[]),currentUser.uid];
+    ensureGameMeta(st);
+    st.playerColors[currentUser.uid]=(st.players[0]===currentUser.uid)?"black":"white";
     st.version=Date.now();
 
     await update(roomRef,{state:st});
