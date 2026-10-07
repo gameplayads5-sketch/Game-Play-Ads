@@ -220,10 +220,13 @@ function draw(){
  });
  if(state){
    const s=state.striker;
-   ctx.beginPath();ctx.fillStyle="#fff7e8";ctx.arc(s.x,s.y,SR,0,Math.PI*2);ctx.fill();
-   ctx.strokeStyle="#b11d1d";ctx.lineWidth=5;ctx.stroke();
+   ctx.beginPath();
+   ctx.shadowColor="#0008";ctx.shadowBlur=7;
+   ctx.fillStyle="#21b35b";ctx.arc(s.x,s.y,SR,0,Math.PI*2);ctx.fill();
+   ctx.shadowBlur=0;
+   ctx.strokeStyle="#0b6b35";ctx.lineWidth=5;ctx.stroke();
    if(drag){
-     ctx.beginPath();ctx.setLineDash([9,9]);ctx.strokeStyle="#b11d1d";ctx.lineWidth=3;
+     ctx.beginPath();ctx.setLineDash([9,9]);ctx.strokeStyle="#168a45";ctx.lineWidth=3;
      ctx.moveTo(s.x,s.y);ctx.lineTo(ax,ay);ctx.stroke();ctx.setLineDash([]);
    }
  }
