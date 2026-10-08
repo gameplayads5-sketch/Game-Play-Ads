@@ -23,9 +23,8 @@ body{min-height:100vh}
 .boardTitle{text-align:center;color:#cfe7ff;font-weight:800;font-size:12px;margin:2px auto 2px;letter-spacing:.4px}.boardWrap{position:relative;width:min(92vw,500px);margin:6px auto 8px;padding:5px;border-radius:22px;background:linear-gradient(135deg,#0b6bcf,#5a21c8,#0b6bcf);box-shadow:0 12px 30px #0009}.boardInner{background:#241108;border-radius:18px;padding:4px}.boardInner canvas{width:100%;height:auto;display:block;border-radius:14px;touch-action:none}
 #game{display:block}#msg{min-height:20px;color:#e9c9a7;font-size:13px;margin-top:6px}
 input{width:100%;background:#120d0a;color:#fff;border:1px solid #6b4734;border-radius:10px;padding:12px;margin:5px 0}button{background:#c97932;color:#fff;border:0;border-radius:10px;padding:11px 14px;font-weight:700;margin:4px;cursor:pointer}.small{font-size:11px;color:#bfaea1}.muted{color:#b9cbe3;font-size:12px;line-height:1.5}
-.matchControls{padding:10px 11px}.controlTitle{font-size:15px;font-weight:900;margin-bottom:3px}.matchControls input{background:#061735;border-color:#2869aa;margin:5px 0;padding:10px;font-size:13px}.actionRow{display:grid;grid-template-columns:1fr 1fr;gap:5px}.actionRow button{width:100%;margin:3px 0}.primaryBtn{background:linear-gradient(135deg,#16a34a,#22c55e)}.joinBtn{background:linear-gradient(135deg,#2563eb,#7c3aed)}.copyBtn{font-size:9px;padding:3px 7px;margin:2px 0;background:#123e72}.matchControls input[readonly]{opacity:.85}
 .claimbox{background:#10243a;border:1px solid #2a8cff;border-radius:14px;padding:12px;margin-top:10px}.claimbox input[type=file]{background:#091625;border:1px solid #2a4968;border-radius:10px;padding:8px;width:100%;color:#fff}.claimbox button{width:100%;margin:6px 0 0}
-.matchInfo{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.matchInfo .badge{background:#061735;border:1px solid #2869aa;border-radius:12px;padding:9px;color:#dceeff;font-size:12px}.matchInfo b{font-size:14px}
+.matchJoin{padding:12px}.joinTitle{font-size:17px;font-weight:900;margin-bottom:5px}.joinBtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}.joinBtns button{margin:0;font-size:13px}.matchJoin input{font-size:16px;text-transform:uppercase}.matchJoin input:focus{outline:2px solid #42a5ff;border-color:#42a5ff}.matchInfo{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.matchInfo .badge{background:#061735;border:1px solid #2869aa;border-radius:12px;padding:9px;color:#dceeff;font-size:12px}.matchInfo b{font-size:14px}
 @media(max-width:420px){#app{padding:4px 6px 18px}.top{padding:7px 8px;border-radius:16px}.topTitle{font-size:16px}.topSub{font-size:9px}.roomBox{min-width:108px;padding:4px 6px}.roomLabel{font-size:9px}.roomCode{font-size:15px}.count{font-size:10px}.playerCard{grid-template-columns:43px minmax(0,1fr);padding:5px 6px;margin:4px 0;border-radius:15px}.avatarBig{width:40px;height:40px;font-size:18px}.pName{font-size:14px}.pId{font-size:9px}.details{gap:3px;margin-top:4px}.detail{padding:4px 5px;border-radius:8px}.detailLabel{font-size:8px}.detailValue{font-size:10px}.vs{height:16px;margin:0 auto}.vs span{padding:1px 8px;font-size:14px;border-width:1px}.boardWrap{width:min(94vw,390px);margin:4px auto 6px;padding:3px;border-radius:18px}.boardInner{padding:2px;border-radius:13px}}
 </style>
 </head>
@@ -34,19 +33,16 @@ input{width:100%;background:#120d0a;color:#fff;border:1px solid #6b4734;border-r
   <div id="game">
     <div class="top">
       <div><div class="topTitle">👑 GameNest BD • Carrom</div><div class="topSub">Play • Win • Earn • Secure Match</div></div>
-      <div class="roomBox"><div class="roomLabel">Match / Room Code</div><div class="roomCode" id="roomCodeText">—</div><button class="copyBtn" id="copyRoomBtn" type="button">📋 Copy</button><div class="count">🟢 <span id="playerCount">0/2</span> Players</div></div>
+      <div class="roomBox"><div class="roomLabel">Match / Room Code</div><div class="roomCode" id="roomCodeText">—</div><div class="count">🟢 <span id="playerCount">0/2</span> Players</div></div>
     </div>
 
-    <div class="card matchControls">
-      <div class="controlTitle">🎟️ Match Join</div>
-      <div class="muted">আপনার Active Package থেকেই Entry Amount নেওয়া হবে। এখানে নিজের মতো টাকা লিখে খেলা যাবে না।</div>
-      <input id="packageCodeInput" type="text" placeholder="Package Code" autocomplete="off" readonly>
-      <input id="matchCodeInput" type="text" placeholder="অন্য Player-এর Match Code লিখুন" autocomplete="off" maxlength="12">
-      <div class="actionRow">
-        <button id="createMatchBtn" class="primaryBtn" type="button">➕ Create Match</button>
-        <button id="joinMatchBtn" class="joinBtn" type="button">👥 Join Match</button>
-      </div>
-      <div id="matchActionMsg" class="small">প্রথম Player Create Match চাপবেন। দ্বিতীয় Player সেই Match Code দিয়ে Join Match চাপবেন।</div>
+    <div class="card matchJoin">
+      <div class="joinTitle">🎟️ Match Join</div>
+      <div class="muted">আপনার Active Package-এর <b>Package Code</b> দিন। তারপর প্রথম Player <b>Create Match</b> এবং দ্বিতীয় Player <b>Match Code</b> দিয়ে Join করবে। Entry Amount Package থেকেই নেওয়া হবে।</div>
+      <input id="packageCodeInput" type="text" inputmode="text" autocomplete="off" placeholder="Package Code" aria-label="Package Code">
+      <input id="matchCodeInput" type="text" inputmode="text" autocomplete="off" placeholder="Match Code (Join করলে)" aria-label="Match Code">
+      <div class="joinBtns"><button id="createMatchBtn" type="button">➕ Create Match</button><button id="joinMatchBtn" type="button">👥 Join Match</button></div>
+      <div class="small">প্রথম Player Create Match চাপবে। দ্বিতীয় Player সেই Match Code দিয়ে Join করবে। Entry Amount দুজনের Package-এ একই না হলে Join হবে না।</div>
     </div>
 
     <div id="player2Card" class="playerCard p2">
@@ -614,25 +610,72 @@ function dbError(e){
 
 async function validatePackageAccess(){
   if(!currentUser)return false;
-  if(!purchaseId||!packageCode)return gameMsg("এই গেমটি User App-এর Active Package থেকে খুলুন।");
-  const ps=await get(ref(db,"purchases/"+currentUser.uid+"/"+purchaseId));
-  if(!ps.exists())return gameMsg("Package পাওয়া যায়নি।");
-  const p=ps.val()||{};
-  if(p.status!=="active"&&p.status!=="approved")return gameMsg("এই Package Active নয়।");
-  if(String(p.packageCode||"")!==String(packageCode))return gameMsg("Package Code সঠিক নয়।");
-  if(initialGameId && String(p.gameId||"")!==String(initialGameId))return gameMsg("ভুল Game Package।");
-  const tokenSnap=await get(ref(db,"gameTokens/"+packageCode));
-  if(!tokenSnap.exists())return gameMsg("Package Token পাওয়া যায়নি। Admin-এর সঙ্গে যোগাযোগ করুন।");
-  const token=tokenSnap.val()||{};
-  if(token.uid!==currentUser.uid || token.purchaseId!==purchaseId || token.status!=="active")return gameMsg("এই Package Token আর ব্যবহারযোগ্য নয়।");
-  const bet=Number(p.betAmount||p.price||0);
-  if(!Number.isFinite(bet)||bet<=0)return gameMsg("Package Entry Amount সঠিক নয়।");
-  accessPackage={...p,token,betAmount:bet};
-  $("packageCodeText").textContent=packageCode;
-  $("roomCodeText").textContent=p.roomId;
-  $("betText").textContent="৳"+bet.toFixed(2);
-  $("prizeText").textContent="৳"+(bet*2).toFixed(2);
-  return true;
+  const entered=String($("packageCodeInput")?.value||packageCode||"").trim().replace(/\s+/g,"").toUpperCase();
+  if(!entered)return gameMsg("আগে আপনার Package Code লিখুন।");
+  packageCode=entered;
+  try{
+    const tokenSnap=await get(ref(db,"gameTokens/"+packageCode));
+    if(!tokenSnap.exists())return gameMsg("এই Package Code পাওয়া যায়নি।");
+    const token=tokenSnap.val()||{};
+    if(token.uid!==currentUser.uid || token.status!=="active")return gameMsg("এই Package Code আপনার Active Package নয়।");
+    purchaseId=String(token.purchaseId||"");
+    if(!purchaseId)return gameMsg("Package Purchase ID পাওয়া যায়নি।");
+    const ps=await get(ref(db,"purchases/"+currentUser.uid+"/"+purchaseId));
+    if(!ps.exists())return gameMsg("Package পাওয়া যায়নি।");
+    const p=ps.val()||{};
+    if(p.status!=="active"&&p.status!=="approved")return gameMsg("এই Package Active নয়।");
+    if(String(p.packageCode||"").toUpperCase()!==packageCode)return gameMsg("Package Code সঠিক নয়।");
+    if(initialGameId && String(p.gameId||"")!==String(initialGameId))return gameMsg("ভুল Game Package।");
+    const bet=Number(p.betAmount||p.price||0);
+    if(!Number.isFinite(bet)||bet<=0)return gameMsg("Package Entry Amount সঠিক নয়।");
+    accessPackage={...p,token,betAmount:bet};
+    $("packageCodeText").textContent=packageCode;
+    $("betText").textContent="৳"+bet.toFixed(2);
+    $("prizeText").textContent="৳"+(bet*2).toFixed(2);
+    gameMsg("Package যাচাই সফল। এখন Create Match অথবা Match Code দিয়ে Join করুন।");
+    return true;
+  }catch(e){ gameMsg(dbError(e)); return false; }
+}
+
+function randomMatchCode(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let out="GN";
+  for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+
+async function createMatch(){
+  if(!currentUser)return gameMsg("GameNest User App-এ আগে Login করুন।");
+  try{
+    if(!(await validatePackageAccess()))return;
+    const bet=Number(accessPackage.betAmount||0);
+    let id="";
+    for(let i=0;i<8;i++){
+      const candidate=randomMatchCode();
+      const snap=await get(ref(db,"carromRooms/"+candidate));
+      if(!snap.exists()){id=candidate;break;}
+    }
+    if(!id)return gameMsg("নতুন Match Code তৈরি করা যাচ্ছে না। আবার চেষ্টা করুন।");
+    const st=initialState(currentUser.uid);
+    st.betAmount=bet;
+    st.winningAmount=bet*2;
+    st.playerPackages[currentUser.uid]={packageCode,purchaseId,betAmount:bet};
+    st.playerProfiles[currentUser.uid]={name:currentProfile?.name||"Player 1",photo:currentProfile?.photo||currentProfile?.photoURL||""};
+    await set(ref(db,"carromRooms/"+id),{
+      gameId:accessPackage.gameId||initialGameId||"carrom",
+      betAmount:bet,
+      createdBy:currentUser.uid,
+      createdAt:Date.now(),
+      status:"waiting",
+      state:st,
+      members:{[currentUser.uid]:{uid:currentUser.uid,gameId:accessPackage.gameId||initialGameId||"carrom",purchaseId,packageCode,betAmount:bet,joinedAt:Date.now(),name:currentProfile?.name||"Player 1"}}
+    });
+    $("matchCodeInput").value=id;
+    $("roomCodeText").textContent=id;
+    $("roomCodeText2").textContent=id;
+    await watchRoom(id);
+    gameMsg("✅ Match তৈরি হয়েছে। এই Match Code অন্য Player-কে দিন: "+id);
+  }catch(e){console.error(e);gameMsg(dbError(e));}
 }
 
 async function watchRoom(id){
@@ -695,152 +738,50 @@ async function watchRoom(id){
   );
 }
 
-function makeRoomCode(){
-  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let out="GN";
-  const a=new Uint32Array(6);
-  crypto.getRandomValues(a);
-  for(const n of a)out+=chars[n%chars.length];
-  return out;
-}
-
-function setActionMsg(t){
-  const el=$("matchActionMsg");
-  if(el)el.textContent=t;
-}
-
-async function createMatch(){
-  if(!currentUser)return gameMsg("GameNest User App-এ আগে Login করুন।");
-  try{
-    setActionMsg("⏳ Package যাচাই হচ্ছে...");
-    if(!(await validatePackageAccess()))return;
-    if(roomUnsub)roomUnsub();
-    const bet=Number(accessPackage.betAmount||0);
-    const id=makeRoomCode();
-    const init=initialState(currentUser.uid);
-    init.betAmount=bet;
-    init.winningAmount=Math.round(bet*2*100)/100;
-    init.playerPackages[currentUser.uid]={packageCode,purchaseId,betAmount:bet};
-    init.playerProfiles[currentUser.uid]={name:currentProfile?.name||"Player 1",photo:currentProfile?.photo||currentProfile?.photoURL||""};
-    await set(ref(db,"carromRooms/"+id),{
-      gameId:accessPackage.gameId||initialGameId||"carrom",
-      betAmount:bet,
-      createdBy:currentUser.uid,
-      createdAt:Date.now(),
-      status:"waiting",
-      state:init,
-      members:{[currentUser.uid]:{uid:currentUser.uid,gameId:accessPackage.gameId||initialGameId||"carrom",purchaseId,packageCode,betAmount:bet,joinedAt:Date.now(),name:currentProfile?.name||"Player 1"}}
-    });
-    $("matchCodeInput").value=id;
-    $("roomCodeText").textContent=id;
-    setActionMsg("✅ Match তৈরি হয়েছে। এই Code অন্য Player-কে দিন: "+id);
-    gameMsg("Match তৈরি হয়েছে। এখন দ্বিতীয় Player এই Match Code দিয়ে Join করবে।");
-    await watchRoom(id);
-  }catch(e){console.error(e);setActionMsg(dbError(e));gameMsg(dbError(e));}
-}
-
-async function joinRoomByCode(){
-  if(!currentUser)return gameMsg("GameNest User App-এ আগে Login করুন।");
-  const typed=String($("matchCodeInput")?.value||"").trim().replace(/\s+/g,"").toUpperCase();
-  if(!typed)return gameMsg("Match Code লিখুন।");
-  try{
-    setActionMsg("⏳ Match যাচাই হচ্ছে...");
-    if(!(await validatePackageAccess()))return;
-    const roomRef=ref(db,"carromRooms/"+typed),snap=await get(roomRef);
-    if(!snap.exists())return gameMsg("এই Match Code পাওয়া যায়নি।");
-    const room=snap.val()||{};
-    const roomGame=String(room.gameId||"");
-    const myGame=String(accessPackage.gameId||initialGameId||"carrom");
-    if(roomGame!==myGame)return gameMsg("এই Room অন্য Game-এর।");
-    const roomBet=Number(room.betAmount||0),myBet=Number(accessPackage.betAmount||0);
-    if(Math.abs(roomBet-myBet)>0.0001)return gameMsg(`Entry Amount mismatch: Room ৳${roomBet.toFixed(2)}, আপনার Package ৳${myBet.toFixed(2)}। Join বন্ধ।`);
-    const st=room.state||{};
-    if(st.winner)return gameMsg("এই Match ইতোমধ্যে শেষ হয়েছে।");
-    const players=Array.isArray(st.players)?st.players.filter(Boolean):[];
-    if(players.includes(currentUser.uid)){ await watchRoom(typed); return; }
-    if(players.length>=2)return gameMsg("এই Match ইতোমধ্যে 2/2 পূর্ণ।");
-    const existing=await get(ref(db,"carromRooms/"+typed+"/members/"+currentUser.uid));
-    if(existing.exists())return gameMsg("এই User ইতোমধ্যে এই Match-এ যুক্ত হয়েছে।");
-    await set(ref(db,"carromRooms/"+typed+"/members/"+currentUser.uid),{uid:currentUser.uid,gameId:myGame,purchaseId,packageCode,betAmount:myBet,joinedAt:Date.now(),name:currentProfile?.name||"Player 2"});
-    const playersRef=ref(db,"carromRooms/"+typed+"/state/players");
-    const tx=await runTransaction(playersRef,current=>{
-      const arr=Array.isArray(current)?current.filter(Boolean):[];
-      if(arr.includes(currentUser.uid))return arr;
-      if(arr.length>=2)return;
-      arr.push(currentUser.uid);return arr;
-    });
-    if(!tx.committed){
-      const latest=await get(playersRef);
-      const lp=latest.val()||[];
-      if(!Array.isArray(lp)||!lp.includes(currentUser.uid))return gameMsg("এই Match 2/2 পূর্ণ।");
-    }
-    const latestState=(await get(ref(db,"carromRooms/"+typed+"/state"))).val()||{};
-    const nowPlayers=Array.isArray(latestState.players)?latestState.players.filter(Boolean):[];
-    const profiles={...(latestState.playerProfiles||{})};
-    const packages={...(latestState.playerPackages||{})};
-    profiles[currentUser.uid]={name:currentProfile?.name||"Player 2",photo:currentProfile?.photo||currentProfile?.photoURL||""};
-    packages[currentUser.uid]={packageCode,purchaseId,betAmount:myBet};
-    await update(ref(db,"carromRooms/"+typed),{status:nowPlayers.length>=2?"playing":"waiting"});
-    await update(ref(db,"carromRooms/"+typed+"/state"),{players:nowPlayers,playerProfiles:profiles,playerPackages:packages,betAmount:roomBet,version:Date.now()});
-    $("roomCodeText").textContent=typed;
-    setActionMsg("✅ Join সফল। 2/2 হলে Match শুরু হবে।");
-    gameMsg(nowPlayers.length>=2?"🎮 দুই Player যুক্ত হয়েছে। খেলা শুরু করুন।":"আপনি Join করেছেন। অন্য Player-এর অপেক্ষা করুন।");
-    await watchRoom(typed);
-  }catch(e){console.error(e);setActionMsg(dbError(e));gameMsg(dbError(e));}
-}
-
 async function joinRoom(){
   if(!currentUser)return gameMsg("GameNest User App-এ আগে Login করুন।");
   try{
     if(!(await validatePackageAccess()))return;
-    const id=String(accessPackage.roomId||"").trim().replace(/\s+/g,"").toUpperCase();
-    if(!id)return gameMsg("Match Room পাওয়া যায়নি।");
+    const id=String($("matchCodeInput")?.value||"").trim().replace(/\s+/g,"").toUpperCase();
+    if(!id)return gameMsg("Join করার জন্য Match Code লিখুন।");
     const roomRef=ref(db,"carromRooms/"+id),snap=await get(roomRef);
-    if(!snap.exists())return gameMsg("Match Room পাওয়া যায়নি: "+id);
+    if(!snap.exists())return gameMsg("এই Match Code পাওয়া যায়নি: "+id);
     const room=snap.val()||{};
-    if(String(room.gameId||"")!==String(accessPackage.gameId||""))return gameMsg("এই Room অন্য Game-এর।");
-    const roomBet=Number(room.betAmount||0), myBet=Number(accessPackage.betAmount||0);
-    if(Math.abs(roomBet-myBet)>0.0001)return gameMsg(`Entry Amount mismatch: Package ৳${myBet.toFixed(2)}, Room ৳${roomBet.toFixed(2)}। Join বন্ধ।`);
+    const roomGame=String(room.gameId||"");
+    const myGame=String(accessPackage.gameId||initialGameId||"carrom");
+    if(roomGame && roomGame!==myGame)return gameMsg("এই Room অন্য Game-এর।");
+    const roomBet=Number(room.betAmount||room.state?.betAmount||0), myBet=Number(accessPackage.betAmount||0);
+    if(Math.abs(roomBet-myBet)>0.0001)return gameMsg(`Entry Amount mismatch: Room ৳${roomBet.toFixed(2)}, আপনার Package ৳${myBet.toFixed(2)}। Join বন্ধ।`);
     const st=room.state||{};
     if(st.winner)return gameMsg("এই Match ইতোমধ্যে শেষ হয়েছে।");
+    const players=Array.isArray(st.players)?st.players.filter(Boolean):[];
+    if(players.length>=2 && !players.includes(currentUser.uid))return gameMsg("এই Match 2/2 পূর্ণ।");
+    if(players.length===1 && players[0]===currentUser.uid)return watchRoom(id);
     const memberRef=ref(db,"carromRooms/"+id+"/members/"+currentUser.uid);
-    const existing=await get(memberRef);
-    if(existing.exists()){
-      const m=existing.val()||{};
-      if(m.packageCode!==packageCode)return gameMsg("এই User-এর অন্য Package দিয়ে এই Room ব্যবহার করা যাবে না।");
-    }else{
-      await set(memberRef,{uid:currentUser.uid,gameId:accessPackage.gameId,purchaseId,packageCode,betAmount:myBet,joinedAt:Date.now(),name:currentProfile?.name||"Player"});
-    }
-    const playersRef=ref(db,"carromRooms/"+id+"/state/players");
-    const tx=await runTransaction(playersRef,current=>{
-      const arr=Array.isArray(current)?current.filter(Boolean):[];
-      if(arr.includes(currentUser.uid))return arr;
-      if(arr.length>=2)return;
-      arr.push(currentUser.uid); return arr;
-    });
-    if(!tx.committed){
-      const latest=await get(roomRef), lp=latest.val()?.state?.players||[];
-      if(!lp.includes(currentUser.uid))return gameMsg("এই Match 2/2 পূর্ণ।");
-    }
-    const latestState=(await get(ref(db,"carromRooms/"+id+"/state"))).val()||{};
-    const playersNow=Array.isArray(latestState.players)?latestState.players.filter(Boolean):[];
-    const profilesNow=latestState.playerProfiles||{};
-    const packagesNow=latestState.playerPackages||{};
-    profilesNow[currentUser.uid]={name:currentProfile?.name||"Player",photo:currentProfile?.photo||currentProfile?.photoURL||""};
+    await set(memberRef,{uid:currentUser.uid,gameId:myGame,purchaseId,packageCode,betAmount:myBet,joinedAt:Date.now(),name:currentProfile?.name||"Player 2"});
+    const nextPlayers=players.includes(currentUser.uid)?players:[...players,currentUser.uid];
+    const profilesNow=st.playerProfiles||{};
+    const packagesNow=st.playerPackages||{};
+    profilesNow[currentUser.uid]={name:currentProfile?.name||"Player 2",photo:currentProfile?.photo||currentProfile?.photoURL||""};
     packagesNow[currentUser.uid]={packageCode,purchaseId,betAmount:myBet};
-    await update(ref(db,"carromRooms/"+id+"/state"),{betAmount:myBet,playerProfiles:profilesNow,playerPackages:packagesNow,players:playersNow});
+    if(!st.playerColors)st.playerColors={};
+    st.playerColors[players[0]||currentUser.uid]=st.playerColors[players[0]||currentUser.uid]||"black";
+    st.playerColors[currentUser.uid]=st.playerColors[currentUser.uid]||"white";
+    st.players=nextPlayers;
+    st.playerMap=st.playerMap||{}; st.playerMap[currentUser.uid]=true;
+    st.playerProfiles=profilesNow; st.playerPackages=packagesNow; st.betAmount=roomBet; st.winningAmount=roomBet*2;
+    await update(ref(db,"carromRooms/"+id),{status:nextPlayers.length>=2?"ready":"waiting",state:st});
+    $("matchCodeInput").value=id;
     await watchRoom(id);
+    gameMsg(nextPlayers.length>=2?"✅ দুই Player যুক্ত হয়েছে। Game শুরু করা যাবে।":"Match-এ যুক্ত হয়েছেন। দ্বিতীয় Player-এর অপেক্ষা করুন।");
   }catch(e){console.error(e);gameMsg(dbError(e));}
 }
 
+$("createMatchBtn").addEventListener("click",createMatch);
+$("joinMatchBtn").addEventListener("click",joinRoom);
+$("packageCodeInput").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase();packageCode=e.target.value.trim();});
+$("matchCodeInput").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase();});
 
-$("createMatchBtn")?.addEventListener("click",createMatch);
-$("joinMatchBtn")?.addEventListener("click",joinRoomByCode);
-$("copyRoomBtn")?.addEventListener("click",async()=>{
-  const code=String($("roomCodeText")?.textContent||"").trim();
-  if(!code||code==="—")return gameMsg("আগে একটি Match তৈরি বা Join করুন।");
-  try{await navigator.clipboard.writeText(code);setActionMsg("📋 Match Code Copy হয়েছে: "+code);}catch(e){gameMsg("Copy করা যায়নি। Code হাতে লিখে Share করুন: "+code);}
-});
 
 onAuthStateChanged(auth,async user=>{
  currentUser=user;
@@ -855,19 +796,7 @@ onAuthStateChanged(auth,async user=>{
    currentProfile=ps.exists()?(ps.val()||{}):{};
  }catch(e){currentProfile={};}
  draw();
- const pci=$("packageCodeInput");
- if(pci) pci.value=packageCode||"";
- if(purchaseId&&packageCode){
-   setTimeout(()=>{
-     validatePackageAccess().then(ok=>{
-       if(ok){
-         const r=String(accessPackage?.roomId||"").trim().replace(/\s+/g,"").toUpperCase();
-         if(r){ $("matchCodeInput").value=r; joinRoom().catch(console.error); }
-         else gameMsg("Package যাচাই হয়েছে। এখন Create Match অথবা Match Code দিয়ে Join Match চাপুন।");
-       }
-     }).catch(e=>gameMsg(dbError(e)));
-   },250);
- }
+ try{ if(packageCode){ $("packageCodeInput").value=packageCode; } if(qs.get("roomId")){ $("matchCodeInput").value=qs.get("roomId"); } if(purchaseId&&packageCode&&qs.get("roomId")){ setTimeout(()=>joinRoom(),250); } }catch(e){}
 });
 </script>
 </body>
