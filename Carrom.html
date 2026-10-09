@@ -37,12 +37,11 @@ input{width:100%;background:#120d0a;color:#fff;border:1px solid #6b4734;border-r
     </div>
 
     <div class="card matchJoin">
-      <div class="joinTitle">🎟️ Match Join</div>
-      <div class="muted">আপনার Active Package-এর <b>Package Code</b> দিন। তারপর প্রথম Player <b>Create Match</b> এবং দ্বিতীয় Player <b>Match Code</b> দিয়ে Join করবে। Entry Amount Package থেকেই নেওয়া হবে।</div>
-      <input id="packageCodeInput" type="text" inputmode="text" autocomplete="off" placeholder="Package Code" aria-label="Package Code">
-      <input id="matchCodeInput" type="text" inputmode="text" autocomplete="off" placeholder="Match Code (Join করলে)" aria-label="Match Code">
-      <div class="joinBtns"><button id="createMatchBtn" type="button">➕ Create Match</button><button id="joinMatchBtn" type="button">👥 Join Match</button></div>
-      <div class="small">প্রথম Player Create Match চাপবে। দ্বিতীয় Player সেই Match Code দিয়ে Join করবে। Entry Amount দুজনের Package-এ একই না হলে Join হবে না।</div>
+      <div class="joinTitle">🎟️ Auto Matchmaking</div>
+      <div class="muted">আপনার কেনা Package Code দিন। একই মূল্যের আরেকজন ইউজার খুঁজে পেলে Firebase অটোমেটিক ম্যাচ তৈরি করবে। আলাদা Match Code পাঠাতে হবে না।</div>
+      <input id="packageCodeInput" type="text" inputmode="text" autocomplete="off" placeholder="আপনার Package Code" aria-label="Package Code">
+      <div class="joinBtns"><button id="findMatchBtn" type="button">🔎 প্রতিপক্ষ খুঁজুন</button><button id="cancelMatchBtn" type="button" style="background:#45546b" disabled>✖ অপেক্ষা বাতিল</button></div>
+      <div class="small">ম্যাচ না পাওয়া পর্যন্ত প্যাকেজ ব্যবহার হবে না। ম্যাচ নিশ্চিত হলে এই প্যাকেজ অন্য ম্যাচে ব্যবহার করা যাবে না।</div>
     </div>
 
     <div id="player2Card" class="playerCard p2">
@@ -79,6 +78,7 @@ input{width:100%;background:#120d0a;color:#fff;border:1px solid #6b4734;border-r
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {getDatabase,ref,set,get,update,onValue,runTransaction} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js";
 
 const firebaseConfig={
  apiKey:"AIzaSyD2DBF_GTIkQfa6G_3gZLfZ5n0MaUEBQ48",
@@ -91,9 +91,17 @@ const firebaseConfig={
  measurementId:"G-Z66KWE43M6"
 };
 
+// Authentication, purchases, package tokens and user profiles belong to gamenest-bd.
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getDatabase(app);
+// Spark-safe architecture: game board data uses a dedicated /carromRooms
+// path in the same project, so auth.uid is consistent with gameTokens/users.
+const carromDb=db;
+const functions=getFunctions(app,"asia-southeast1");
+const findCarromMatchCall=httpsCallable(functions,"findCarromMatch");
+const cancelCarromSearchCall=httpsCallable(functions,"cancelCarromSearch");
+let matchmakingActive=false,matchmakingTimer=null;
 
 const $=id=>document.getElementById(id);
 const gameBox=$("game");
@@ -438,7 +446,7 @@ window.submitWinningClaim=async()=>{
    const id=db.ref("winningClaims").push().key;
    const qs=new URLSearchParams(location.search);
    const profile=currentProfile||{};
-   const claim={id,uid:currentUser.uid,userId:currentUser.uid,userName:profile.name||qs.get("name")||"User",mobile:profile.mobile||qs.get("mobile")||"",gameId:qs.get("gameId")||"",gameName:"GameNest BD • Carrom",roomId,betAmount:Number(state.betAmount||0),winningAmount:amount,screenshot:shot,status:"pending",createdAt:Date.now()};
+   const claim={id,uid:currentUser.uid,userId:currentUser.uid,userName:profile.name||qs.get("name")||"User",mobile:profile.mobile||qs.get("mobile")||"",gameId:qs.get("gameId")||"",gameName:"GameNest BD • Carrom",roomId,betAmount:Number(state.betAmount||0),winningAmount:amount,screenshot:shot,status:"pending",notificationType:"winning_claim",createdAt:Date.now()};
    await set(ref(db,"winningClaims/"+id),claim);
    state.claimId=id;
    renderClaimArea();
@@ -595,7 +603,7 @@ async function saveRoomState(){
  const payload={...state};
  delete payload.roomSyncVersion;
  state.roomSyncVersion=state.version;
- await update(ref(db,"carromRooms/"+roomId),{state:payload});
+ await update(ref(carromDb,"carromRooms/"+roomId),{state:payload});
 }
 
 function dbError(e){
@@ -632,7 +640,7 @@ async function validatePackageAccess(){
     $("packageCodeText").textContent=packageCode;
     $("betText").textContent="৳"+bet.toFixed(2);
     $("prizeText").textContent="৳"+(bet*2).toFixed(2);
-    gameMsg("Package যাচাই সফল। এখন Create Match অথবা Match Code দিয়ে Join করুন।");
+    gameMsg("Package যাচাই সফল। এখন প্রতিপক্ষ খুঁজুন চাপুন।");
     return true;
   }catch(e){ gameMsg(dbError(e)); return false; }
 }
@@ -644,38 +652,54 @@ function randomMatchCode(){
   return out;
 }
 
-async function createMatch(){
+async function findMatch(){
   if(!currentUser)return gameMsg("GameNest User App-এ আগে Login করুন।");
+  if(matchmakingActive)return gameMsg("প্রতিপক্ষ খোঁজা হচ্ছে। একটু অপেক্ষা করুন।");
+  if(!(await validatePackageAccess()))return;
+  matchmakingActive=true;
+  $("findMatchBtn").disabled=true; $("cancelMatchBtn").disabled=false;
+  gameMsg("🔎 একই মূল্যের প্রতিপক্ষ খোঁজা হচ্ছে… ম্যাচ না হওয়া পর্যন্ত প্যাকেজ লক হবে না।");
   try{
-    if(!(await validatePackageAccess()))return;
-    const bet=Number(accessPackage.betAmount||0);
-    let id="";
-    for(let i=0;i<8;i++){
-      const candidate=randomMatchCode();
-      const snap=await get(ref(db,"carromRooms/"+candidate));
-      if(!snap.exists()){id=candidate;break;}
+    const result=await findCarromMatchCall({packageCode});
+    const data=result.data||{};
+    if(data.status==="matched" && data.roomId){
+      matchmakingActive=false; clearInterval(matchmakingTimer); matchmakingTimer=null;
+      $("findMatchBtn").disabled=false; $("cancelMatchBtn").disabled=true;
+      roomId=data.roomId; $("matchCodeInput") && ($("matchCodeInput").value=data.roomId);
+      gameMsg("✅ প্রতিপক্ষ পাওয়া গেছে! গেমে সংযোগ হচ্ছে…");
+      await watchRoom(data.roomId); return;
     }
-    if(!id)return gameMsg("নতুন Match Code তৈরি করা যাচ্ছে না। আবার চেষ্টা করুন।");
-    const st=initialState(currentUser.uid);
-    st.betAmount=bet;
-    st.winningAmount=bet*2;
-    st.playerPackages[currentUser.uid]={packageCode,purchaseId,betAmount:bet};
-    st.playerProfiles[currentUser.uid]={name:currentProfile?.name||"Player 1",photo:currentProfile?.photo||currentProfile?.photoURL||""};
-    await set(ref(db,"carromRooms/"+id),{
-      gameId:accessPackage.gameId||initialGameId||"carrom",
-      betAmount:bet,
-      createdBy:currentUser.uid,
-      createdAt:Date.now(),
-      status:"waiting",
-      state:st,
-      members:{[currentUser.uid]:{uid:currentUser.uid,gameId:accessPackage.gameId||initialGameId||"carrom",purchaseId,packageCode,betAmount:bet,joinedAt:Date.now(),name:currentProfile?.name||"Player 1"}}
-    });
-    $("matchCodeInput").value=id;
-    $("roomCodeText").textContent=id;
-    $("roomCodeText2").textContent=id;
-    await watchRoom(id);
-    gameMsg("✅ Match তৈরি হয়েছে। এই Match Code অন্য Player-কে দিন: "+id);
-  }catch(e){console.error(e);gameMsg(dbError(e));}
+    gameMsg("⏳ Waiting… একই মূল্যের অন্য ইউজার এলে ম্যাচ অটোমেটিক শুরু হবে।");
+    if(!matchmakingTimer)matchmakingTimer=setInterval(async()=>{
+      if(!matchmakingActive)return;
+      try{
+        const r=await findCarromMatchCall({packageCode});
+        const d=r.data||{};
+        if(d.status==="matched"&&d.roomId){
+          matchmakingActive=false;clearInterval(matchmakingTimer);matchmakingTimer=null;
+          $("findMatchBtn").disabled=false;$("cancelMatchBtn").disabled=true;
+          gameMsg("✅ প্রতিপক্ষ পাওয়া গেছে! গেমে সংযোগ হচ্ছে…");await watchRoom(d.roomId);
+        }
+      }catch(e){console.error(e);gameMsg(dbError(e));}
+    },4000);
+  }catch(e){
+    matchmakingActive=false;$("findMatchBtn").disabled=false;$("cancelMatchBtn").disabled=true;
+    gameMsg(e?.message||dbError(e));
+  }
+}
+async function cancelMatchSearch(){
+  if(!currentUser||!packageCode)return;
+  try{
+    const r=await cancelCarromSearchCall({packageCode});
+    if(r.data?.status==="matched"&&r.data?.roomId){
+      matchmakingActive=false;clearInterval(matchmakingTimer);matchmakingTimer=null;
+      $("findMatchBtn").disabled=false;$("cancelMatchBtn").disabled=true;
+      gameMsg("ম্যাচ ইতোমধ্যে নিশ্চিত হয়েছে। গেমে সংযোগ হচ্ছে…");await watchRoom(r.data.roomId);return;
+    }
+    matchmakingActive=false;clearInterval(matchmakingTimer);matchmakingTimer=null;
+    $("findMatchBtn").disabled=false;$("cancelMatchBtn").disabled=true;
+    gameMsg("অপেক্ষা বাতিল হয়েছে। আপনার প্যাকেজ ব্যবহার হয়নি; পরে আবার চেষ্টা করতে পারবেন।");
+  }catch(e){gameMsg(e?.message||dbError(e));}
 }
 
 async function watchRoom(id){
@@ -683,7 +707,7 @@ async function watchRoom(id){
   roomId=id;
   gameMsg("Room সংযোগ হচ্ছে...");
   roomUnsub=onValue(
-    ref(db,"carromRooms/"+id),
+    ref(carromDb,"carromRooms/"+id),
     snap=>{
       const v=snap.val();
       if(!v){
@@ -744,7 +768,7 @@ async function joinRoom(){
     if(!(await validatePackageAccess()))return;
     const id=String($("matchCodeInput")?.value||"").trim().replace(/\s+/g,"").toUpperCase();
     if(!id)return gameMsg("Join করার জন্য Match Code লিখুন।");
-    const roomRef=ref(db,"carromRooms/"+id),snap=await get(roomRef);
+    const roomRef=ref(carromDb,"carromRooms/"+id),snap=await get(roomRef);
     if(!snap.exists())return gameMsg("এই Match Code পাওয়া যায়নি: "+id);
     const room=snap.val()||{};
     const roomGame=String(room.gameId||"");
@@ -757,7 +781,7 @@ async function joinRoom(){
     const players=Array.isArray(st.players)?st.players.filter(Boolean):[];
     if(players.length>=2 && !players.includes(currentUser.uid))return gameMsg("এই Match 2/2 পূর্ণ।");
     if(players.length===1 && players[0]===currentUser.uid)return watchRoom(id);
-    const memberRef=ref(db,"carromRooms/"+id+"/members/"+currentUser.uid);
+    const memberRef=ref(carromDb,"carromRooms/"+id+"/members/"+currentUser.uid);
     await set(memberRef,{uid:currentUser.uid,gameId:myGame,purchaseId,packageCode,betAmount:myBet,joinedAt:Date.now(),name:currentProfile?.name||"Player 2"});
     const nextPlayers=players.includes(currentUser.uid)?players:[...players,currentUser.uid];
     const profilesNow=st.playerProfiles||{};
@@ -770,17 +794,18 @@ async function joinRoom(){
     st.players=nextPlayers;
     st.playerMap=st.playerMap||{}; st.playerMap[currentUser.uid]=true;
     st.playerProfiles=profilesNow; st.playerPackages=packagesNow; st.betAmount=roomBet; st.winningAmount=roomBet*2;
-    await update(ref(db,"carromRooms/"+id),{status:nextPlayers.length>=2?"ready":"waiting",state:st});
+    st.turn=st.turn||nextPlayers[0];
+    await update(ref(carromDb,"carromRooms/"+id),{status:nextPlayers.length>=2?"ready":"waiting",state:st});
     $("matchCodeInput").value=id;
     await watchRoom(id);
     gameMsg(nextPlayers.length>=2?"✅ দুই Player যুক্ত হয়েছে। Game শুরু করা যাবে।":"Match-এ যুক্ত হয়েছেন। দ্বিতীয় Player-এর অপেক্ষা করুন।");
   }catch(e){console.error(e);gameMsg(dbError(e));}
 }
 
-$("createMatchBtn").addEventListener("click",createMatch);
-$("joinMatchBtn").addEventListener("click",joinRoom);
+$("findMatchBtn").addEventListener("click",findMatch);
+$("cancelMatchBtn").addEventListener("click",cancelMatchSearch);
 $("packageCodeInput").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase();packageCode=e.target.value.trim();});
-$("matchCodeInput").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase();});
+
 
 
 onAuthStateChanged(auth,async user=>{
@@ -796,7 +821,7 @@ onAuthStateChanged(auth,async user=>{
    currentProfile=ps.exists()?(ps.val()||{}):{};
  }catch(e){currentProfile={};}
  draw();
- try{ if(packageCode){ $("packageCodeInput").value=packageCode; } if(qs.get("roomId")){ $("matchCodeInput").value=qs.get("roomId"); } if(purchaseId&&packageCode&&qs.get("roomId")){ setTimeout(()=>joinRoom(),250); } }catch(e){}
+ try{ if(packageCode){ $("packageCodeInput").value=packageCode; } if(purchaseId&&packageCode){ setTimeout(()=>findMatch(),600); } }catch(e){}
 });
 </script>
 </body>
