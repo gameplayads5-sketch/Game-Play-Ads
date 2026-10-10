@@ -24,8 +24,40 @@ body{min-height:100vh}
 #game{display:block}#msg{min-height:20px;color:#e9c9a7;font-size:13px;margin-top:6px}
 input{width:100%;background:#120d0a;color:#fff;border:1px solid #6b4734;border-radius:10px;padding:12px;margin:5px 0}button{background:#c97932;color:#fff;border:0;border-radius:10px;padding:11px 14px;font-weight:700;margin:4px;cursor:pointer}.small{font-size:11px;color:#bfaea1}.muted{color:#b9cbe3;font-size:12px;line-height:1.5}
 .claimbox{background:#10243a;border:1px solid #2a8cff;border-radius:14px;padding:12px;margin-top:10px}.claimbox input[type=file]{background:#091625;border:1px solid #2a4968;border-radius:10px;padding:8px;width:100%;color:#fff}.claimbox button{width:100%;margin:6px 0 0}
-.matchJoin{padding:12px}.joinTitle{font-size:17px;font-weight:900;margin-bottom:5px}.joinBtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}.joinBtns button{margin:0;font-size:13px}.matchJoin input{font-size:16px;text-transform:uppercase}.matchJoin input:focus{outline:2px solid #42a5ff;border-color:#42a5ff}.matchInfo{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.matchInfo .badge{background:#061735;border:1px solid #2869aa;border-radius:12px;padding:9px;color:#dceeff;font-size:12px}.matchInfo b{font-size:14px}
-@media(max-width:420px){#app{padding:4px 6px 18px}.top{padding:7px 8px;border-radius:16px}.topTitle{font-size:16px}.topSub{font-size:9px}.roomBox{min-width:108px;padding:4px 6px}.roomLabel{font-size:9px}.roomCode{font-size:15px}.count{font-size:10px}.playerCard{grid-template-columns:43px minmax(0,1fr);padding:5px 6px;margin:4px 0;border-radius:15px}.avatarBig{width:40px;height:40px;font-size:18px}.pName{font-size:14px}.pId{font-size:9px}.details{gap:3px;margin-top:4px}.detail{padding:4px 5px;border-radius:8px}.detailLabel{font-size:8px}.detailValue{font-size:10px}.vs{height:16px;margin:0 auto}.vs span{padding:1px 8px;font-size:14px;border-width:1px}.boardWrap{width:min(94vw,390px);margin:4px auto 6px;padding:3px;border-radius:18px}.boardInner{padding:2px;border-radius:13px}}
+.matchJoin{padding:9px}.joinTitle{font-size:15px;font-weight:900;margin-bottom:4px}.joinBtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}.joinBtns button{margin:0;font-size:12px;padding:9px 8px}.matchJoin input{font-size:16px;text-transform:uppercase}.matchJoin input:focus{outline:2px solid #42a5ff;border-color:#42a5ff}.matchInfo{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.matchInfo .badge{background:#061735;border:1px solid #2869aa;border-radius:12px;padding:9px;color:#dceeff;font-size:12px}.matchInfo b{font-size:14px}
+@media(max-width:420px){#app{padding:3px 5px 12px}.top{padding:7px 8px;border-radius:16px}.topTitle{font-size:16px}.topSub{font-size:9px}.roomBox{min-width:108px;padding:4px 6px}.roomLabel{font-size:9px}.roomCode{font-size:15px}.count{font-size:10px}.playerCard{grid-template-columns:43px minmax(0,1fr);padding:5px 6px;margin:4px 0;border-radius:15px}.avatarBig{width:40px;height:40px;font-size:18px}.pName{font-size:14px}.pId{font-size:9px}.details{gap:3px;margin-top:4px}.detail{padding:4px 5px;border-radius:8px}.detailLabel{font-size:8px}.detailValue{font-size:10px}.vs{height:16px;margin:0 auto}.vs span{padding:1px 8px;font-size:14px;border-width:1px}.boardWrap{width:min(94vw,390px);margin:4px auto 6px;padding:3px;border-radius:18px}.boardInner{padding:2px;border-radius:13px}}
+
+/* Compact mobile play layout: keep both players and board visible with minimal scrolling */
+html,body{height:100%;min-height:0;overflow:hidden}
+#app{height:calc(100dvh - 6px);min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:3px 5px 4px;gap:3px}
+#game{min-height:0;height:100%;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.top{flex:0 0 auto;padding:4px 7px;border-radius:12px;min-height:42px}
+.topTitle{font-size:14px}.topSub{display:none}
+.roomBox{min-width:86px;padding:2px 5px}.roomLabel{font-size:8px}.roomCode{font-size:13px}.count{font-size:9px}
+.card.matchJoin{flex:0 0 auto;margin:0;padding:5px 7px;border-radius:11px}
+.matchJoin .joinTitle{font-size:11px;margin:0 0 3px}
+.matchJoin .muted,.matchJoin .small{display:none}
+.matchJoin input{width:100%;padding:5px 7px;margin:2px 0;font-size:12px;border-radius:7px}
+.joinBtns{gap:4px}.joinBtns button{font-size:10px;padding:5px 6px;border-radius:7px}
+.playerCard{flex:0 0 auto;grid-template-columns:30px minmax(0,1fr);gap:5px;padding:4px 6px;margin:0;border-radius:10px;box-shadow:none}
+.avatarBig{width:27px;height:27px;font-size:14px;border-width:2px}
+.pTop{gap:4px}.pName{font-size:11px;line-height:1.1}.online{font-size:8px}
+.pId{font-size:8px;margin-top:1px}
+.details{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin-top:3px}
+.detail{padding:3px 4px;border-radius:6px}.detailLabel{font-size:7px;white-space:nowrap}.detailValue{font-size:9px;white-space:nowrap}
+.vs{flex:0 0 13px;height:13px;margin:0;font-size:11px}.vs span{padding:0 7px;border-width:1px}
+.boardTitle{display:none}
+.matchStatus{margin-top:6px;padding:7px 9px;border-radius:8px;background:#102746;border:1px solid #2d5685;color:#e6f2ff;font-size:12px;line-height:1.35;font-weight:600;min-height:16px}
+.matchStatus[data-state="success"]{border-color:#238b61;background:#0d302b;color:#b9ffe0}
+.matchStatus[data-state="error"]{border-color:#a84c55;background:#351a25;color:#ffd0d5}
+.matchStatus[data-state="searching"]{border-color:#c58a32;background:#352915;color:#ffe2a3}
+.boardWrap{flex:1 1 auto;min-height:0;width:min(88vw, calc(100dvh - 345px), 500px);max-height:100%;aspect-ratio:1/1;margin:0 auto;padding:3px;border-radius:13px;display:flex;align-items:stretch}
+.boardInner{padding:2px;border-radius:10px;width:100%;height:100%}
+.boardInner canvas{width:100%;height:100%;object-fit:contain}
+.matchHeader{display:none}
+#game>.card:not(.matchJoin){display:none}
+@media(max-height:700px){.boardWrap{width:min(72vw,calc(100dvh - 275px),420px)}.detail{padding:2px}.pName{font-size:10px}}
+
 </style>
 </head>
 <body>
@@ -38,14 +70,15 @@ input{width:100%;background:#120d0a;color:#fff;border:1px solid #6b4734;border-r
 
     <div class="card matchJoin">
       <div class="joinTitle">🎟️ Auto Matchmaking</div>
-      <div class="muted">আপনার কেনা Package Code দিন। একই মূল্যের আরেকজন ইউজার খুঁজে পেলে Firebase অটোমেটিক ম্যাচ তৈরি করবে। আলাদা Match Code পাঠাতে হবে না।</div>
+      <div class="muted">শুধু নিজের কেনা Package Code দিন। একই Entry-র প্রতিপক্ষ খুঁজে পেলে ম্যাচ হবে। উপরের বক্সে সাদা সাইড, নিচের বক্সে কালো সাইড দেখানো হবে।</div>
       <input id="packageCodeInput" type="text" inputmode="text" autocomplete="off" placeholder="আপনার Package Code" aria-label="Package Code">
       <div class="joinBtns"><button id="findMatchBtn" type="button">🔎 প্রতিপক্ষ খুঁজুন</button><button id="cancelMatchBtn" type="button" style="background:#45546b" disabled>✖ অপেক্ষা বাতিল</button></div>
+      <div id="matchStatus" class="matchStatus" role="status" aria-live="polite">🎟️ আপনার প্যাকেজ কোড যাচাই করার পর প্রতিপক্ষ খুঁজতে পারবেন।</div>
       <div class="small">ম্যাচ না পাওয়া পর্যন্ত প্যাকেজ ব্যবহার হবে না। ম্যাচ নিশ্চিত হলে এই প্যাকেজ অন্য ম্যাচে ব্যবহার করা যাবে না।</div>
     </div>
 
     <div id="player2Card" class="playerCard p2">
-      <div class="avatarBig">2</div><div class="pInfo"><div class="pTop"><div class="pName">Player 2</div><div class="online">● অপেক্ষা</div></div><div class="pId">User ID: —</div><div class="details"><div class="detail"><div class="detailLabel">🎟️ Package Code</div><div class="detailValue" data-package>—</div></div><div class="detail"><div class="detailLabel">🆔 Match Code</div><div class="detailValue" data-room>—</div></div><div class="detail"><div class="detailLabel">💰 Entry</div><div class="detailValue" data-bet>৳0</div></div><div class="detail"><div class="detailLabel">🎨 রঙ</div><div class="detailValue" data-color><span class="colorDot whiteDot"></span>সাদা</div></div></div></div>
+      <div class="avatarBig">⚪</div><div class="pInfo"><div class="pTop"><div class="pName">উপরের খেলোয়াড় • সাদা সাইড</div><div class="online">● অপেক্ষা</div></div><div class="pId">User ID: —</div><div class="details"><div class="detail"><div class="detailLabel">🎟️ প্যাকেজ কোড</div><div class="detailValue" data-package>—</div></div><div class="detail"><div class="detailLabel">🆔 ম্যাচ</div><div class="detailValue" data-room>—</div></div><div class="detail"><div class="detailLabel">💰 Entry</div><div class="detailValue" data-bet>৳0</div></div><div class="detail"><div class="detailLabel">🎨 রঙ</div><div class="detailValue" data-color><span class="colorDot whiteDot"></span>সাদা</div></div></div></div>
     </div>
 
     <div class="vs"><span>VS</span></div>
@@ -53,7 +86,7 @@ input{width:100%;background:#120d0a;color:#fff;border:1px solid #6b4734;border-r
     <div class="boardTitle">🎯 Carrom</div><div class="boardWrap"><div class="boardInner"><canvas id="board" width="800" height="800"></canvas></div></div>
 
     <div id="player1Card" class="playerCard">
-      <div class="avatarBig">1</div><div class="pInfo"><div class="pTop"><div class="pName">Player 1</div><div class="online">● অপেক্ষা</div></div><div class="pId">User ID: —</div><div class="details"><div class="detail"><div class="detailLabel">🎟️ Package Code</div><div class="detailValue" data-package>—</div></div><div class="detail"><div class="detailLabel">🆔 Match Code</div><div class="detailValue" data-room>—</div></div><div class="detail"><div class="detailLabel">💰 Entry</div><div class="detailValue" data-bet>৳0</div></div><div class="detail"><div class="detailLabel">🎨 রঙ</div><div class="detailValue" data-color><span class="colorDot blackDot"></span>কালো</div></div></div></div>
+      <div class="avatarBig">⚫</div><div class="pInfo"><div class="pTop"><div class="pName">নিচের খেলোয়াড় • কালো সাইড</div><div class="online">● অপেক্ষা</div></div><div class="pId">User ID: —</div><div class="details"><div class="detail"><div class="detailLabel">🎟️ প্যাকেজ কোড</div><div class="detailValue" data-package>—</div></div><div class="detail"><div class="detailLabel">🆔 ম্যাচ</div><div class="detailValue" data-room>—</div></div><div class="detail"><div class="detailLabel">💰 Entry</div><div class="detailValue" data-bet>৳0</div></div><div class="detail"><div class="detailLabel">🎨 রঙ</div><div class="detailValue" data-color><span class="colorDot blackDot"></span>কালো</div></div></div></div>
     </div>
 
     <div class="card matchHeader">
@@ -138,7 +171,16 @@ function emailForMobile(m){
  return cleanMobile(m)+"@gamenestbd.app";
 }
 function setMsg(t){msg.textContent=t}
-function gameMsg(t){$("gameMsg").textContent=t}
+function gameMsg(t){
+  const status=$("matchStatus");
+  const hidden=$("gameMsg");
+  if(hidden) hidden.textContent=t;
+  if(status){
+    status.textContent=String(t||"");
+    const v=String(t||"").toLowerCase();
+    status.dataset.state=(v.includes("সমস্যা")||v.includes("ভুল")||v.includes("পাওয়া যায়নি")||v.includes("বাতিল"))?"error":((v.includes("খোঁজা হচ্ছে")||v.includes("waiting")||v.includes("অপেক্ষা"))?"searching":((v.includes("পাওয়া গেছে")||v.includes("সফল")||v.includes("যুক্ত")||v.includes("বিজয়ী"))?"success":"info"));
+  }
+}
 
 function initialState(p1){
  const coins=[{id:"q",x:400,y:400,c:"red",in:false}];
@@ -408,6 +450,8 @@ function resolveElastic(a,b,ra,rb){
   return true;
 }
 
+
+function escapeHtmlClaim(v){return String(v||"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function getWinningAmount(){
   const bet=Number(state?.betAmount||0);
   return Number.isFinite(bet)&&bet>0 ? Math.round(bet*2*100)/100 : 0;
@@ -421,7 +465,7 @@ function renderClaimArea(){
    el.innerHTML=`<div class="claimbox"><b>🏆 আপনি বিজয়ী!</b><div class="small">Winning Amount: <b>৳${amount}</b></div><div id="claimStatus" class="small" style="margin-top:6px">Winning Claim পাঠানো হয়েছে। Admin approval অপেক্ষা করুন।</div></div>`;
    return;
  }
- el.innerHTML=`<div class="claimbox"><b>🎉 অভিনন্দন, আপনি ৳${amount} জিতেছেন!</b><div class="small">Balance-এ টাকা যোগ হওয়ার আগে Screenshot জমা দেওয়া বাধ্যতামূলক।</div><input id="winShot" type="file" accept="image/*"><button id="submitClaimBtn" onclick="submitWinningClaim()">📸 Screenshot জমা দিন</button><div class="small">Screenshot পরিষ্কার ও সম্পূর্ণ রাখুন।</div></div>`;
+ el.innerHTML=`<div class="claimbox"><b>🎉 অভিনন্দন, আপনি ৳${amount} জিতেছেন!</b><div class="small">আপনার প্যাকেজ কোড আগে থেকেই যুক্ত আছে। শুধু জয়ের স্ক্রিনশট জমা দিন; Match ID স্বয়ংক্রিয়ভাবে যুক্ত হবে। NID লাগবে না।</div><div class="small" style="margin:6px 0">🎟️ প্যাকেজ কোড: <b>${escapeHtmlClaim(packageCode)}</b><br>🆔 Match ID: <b>${escapeHtmlClaim(roomId)}</b></div><input id="winShot" type="file" accept="image/*"><button id="submitClaimBtn" onclick="submitWinningClaim()">📸 জয়ের স্ক্রিনশট জমা দিন</button><div class="small">Screenshot পরিষ্কার ও সম্পূর্ণ রাখুন।</div></div>`;
 }
 async function compressScreenshot(file){
  return await new Promise((resolve,reject)=>{
@@ -437,21 +481,26 @@ async function compressScreenshot(file){
 window.submitWinningClaim=async()=>{
  if(!state||state.winner!==currentUser.uid)return;
  const input=$("winShot"),btn=$("submitClaimBtn");
- if(!input?.files?.[0])return gameMsg("Winner Screenshot দিন");
+ if(!input?.files?.[0])return gameMsg("জয়ের স্ক্রিনশট দিন");
  if(state.claimId)return gameMsg("এই Claim ইতোমধ্যে পাঠানো হয়েছে");
  const amount=getWinningAmount(); if(!amount)return gameMsg("Bet Amount পাওয়া যায়নি");
  if(btn){btn.disabled=true;btn.textContent="⏳ Screenshot প্রস্তুত হচ্ছে...";}
  try{
    const shot=await compressScreenshot(input.files[0]);
+   const existingSnap=await get(ref(db,"winningClaims"));
+   const existingClaims=existingSnap.val()||{};
+   if(Object.values(existingClaims).some(c=>c && String(c.matchId||c.roomId||"")===String(roomId) && c.status!=="rejected")){
+     throw new Error("এই Match ID-এর জন্য Claim ইতোমধ্যে জমা হয়েছে।");
+   }
    const id=db.ref("winningClaims").push().key;
    const qs=new URLSearchParams(location.search);
    const profile=currentProfile||{};
-   const claim={id,uid:currentUser.uid,userId:currentUser.uid,userName:profile.name||qs.get("name")||"User",mobile:profile.mobile||qs.get("mobile")||"",gameId:qs.get("gameId")||"",gameName:"GameNest BD • Carrom",roomId,betAmount:Number(state.betAmount||0),winningAmount:amount,screenshot:shot,status:"pending",notificationType:"winning_claim",createdAt:Date.now()};
+   const claim={id,uid:currentUser.uid,userId:currentUser.uid,userName:profile.name||qs.get("name")||"User",mobile:profile.mobile||qs.get("mobile")||"",gameId:qs.get("gameId")||"",gameName:"GameNest BD • Carrom",packageCode,purchaseId,matchId:roomId,roomId,winnerUid:currentUser.uid,betAmount:Number(state.betAmount||0),winningAmount:amount,screenshot:shot,status:"pending",notificationType:"winning_claim",createdAt:Date.now()};
    await set(ref(db,"winningClaims/"+id),claim);
    state.claimId=id;
    renderClaimArea();
    gameMsg("✅ Winning Claim Admin-এর কাছে পাঠানো হয়েছে।");
- }catch(e){console.error(e);gameMsg("Screenshot/Claim পাঠানো যায়নি: "+(e.message||e));if(btn){btn.disabled=false;btn.textContent="📸 Screenshot জমা দিন";}}
+ }catch(e){console.error(e);gameMsg("Screenshot/Claim পাঠানো যায়নি: "+(e.message||e));if(btn){btn.disabled=false;btn.textContent="📸 জয়ের স্ক্রিনশট জমা দিন";}}
 };
 function checkWinner(uid){
  const color=playerColor(uid,state);
@@ -669,7 +718,7 @@ async function findMatch(){
       gameMsg("✅ প্রতিপক্ষ পাওয়া গেছে! গেমে সংযোগ হচ্ছে…");
       await watchRoom(data.roomId); return;
     }
-    gameMsg("⏳ Waiting… একই মূল্যের অন্য ইউজার এলে ম্যাচ অটোমেটিক শুরু হবে।");
+    gameMsg("⏳ প্রতিপক্ষের অপেক্ষায় আছেন। একই Entry-র খেলোয়াড় যুক্ত হলে ম্যাচ তৈরি হবে।");
     if(!matchmakingTimer)matchmakingTimer=setInterval(async()=>{
       if(!matchmakingActive)return;
       try{
@@ -694,25 +743,25 @@ async function cancelMatchSearch(){
     if(r.data?.status==="matched"&&r.data?.roomId){
       matchmakingActive=false;clearInterval(matchmakingTimer);matchmakingTimer=null;
       $("findMatchBtn").disabled=false;$("cancelMatchBtn").disabled=true;
-      gameMsg("ম্যাচ ইতোমধ্যে নিশ্চিত হয়েছে। গেমে সংযোগ হচ্ছে…");await watchRoom(r.data.roomId);return;
+      gameMsg("✅ ম্যাচ নিশ্চিত হয়েছে। গেমে সংযোগ হচ্ছে…");await watchRoom(r.data.roomId);return;
     }
     matchmakingActive=false;clearInterval(matchmakingTimer);matchmakingTimer=null;
     $("findMatchBtn").disabled=false;$("cancelMatchBtn").disabled=true;
-    gameMsg("অপেক্ষা বাতিল হয়েছে। আপনার প্যাকেজ ব্যবহার হয়নি; পরে আবার চেষ্টা করতে পারবেন।");
+    gameMsg("✖ অনুসন্ধান বাতিল হয়েছে। আপনার প্যাকেজ ব্যবহার হয়নি; চাইলে আবার চেষ্টা করুন।");
   }catch(e){gameMsg(e?.message||dbError(e));}
 }
 
 async function watchRoom(id){
   if(roomUnsub)roomUnsub();
   roomId=id;
-  gameMsg("Room সংযোগ হচ্ছে...");
+  gameMsg("🔗 ম্যাচে সংযোগ করা হচ্ছে…");
   roomUnsub=onValue(
     ref(carromDb,"carromRooms/"+id),
     snap=>{
       const v=snap.val();
       if(!v){
         $("roomText").textContent="Room ID: "+id;
-        gameMsg("Room পাওয়া যায়নি");
+        gameMsg("⚠️ ম্যাচের রুম পাওয়া যায়নি। আবার প্রতিপক্ষ খুঁজুন।");
         return;
       }
       const incoming=v.state||null;

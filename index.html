@@ -70,7 +70,7 @@ main{padding:14px}.screen{display:none}.screen.active{display:block}.hero{border
 </section>
 <section id="games" class="screen"><div class="sectiontitle"><h3>🎮 সব গেম</h3><span class="muted">প্যাকেজ কিনে কোড নিন</span></div><div id="gamesList"></div><div class="sectiontitle"><h3>🔑 আমার গেম</h3><span class="muted">Active প্যাকেজ</span></div><div id="myGamesList"></div></section>
 <section id="history" class="screen"><div class="tabs"><button id="ht1" class="active" onclick="historyTab('money')">জমা/উত্তোলন</button><button id="ht2" onclick="historyTab('game')">গেম</button></div><div id="historyList"></div></section>
-<section id="profile" class="screen"><div class="card"><h3>👤 আমার প্রোফাইল</h3><div class="list" id="profileData"></div></div><div class="card"><h3>🔐 PIN নিরাপত্তা</h3><p class="muted">বর্তমান PIN দিয়ে নতুন PIN সেট করুন।</p><button class="primary" onclick="openResetPin()">🔑 PIN রিসেট করুন</button></div><div class="card"><h3>🪪 পরিচয় যাচাই</h3><p class="muted">একটি NID/ID একবার সফলভাবে ব্যবহার হলে একই ID অন্য অ্যাকাউন্টে ব্যবহার করা যাবে না।</p><button class="primary" onclick="openIdentityVerification()">🪪 ID Card জমা দিন</button><div id="identityStatus" class="muted" style="margin-top:8px"></div></div><div class="card"><h3>📱 WhatsApp</h3><p class="muted">Admin-এর সেট করা নম্বরে যোগাযোগ করুন।</p><button class="primary" onclick="contactWhatsApp()">WhatsApp-এ যোগাযোগ</button></div><div class="card"><button class="secondary danger" onclick="logout()">লগআউট</button></div></section>
+<section id="profile" class="screen"><div class="card"><h3>👤 আমার প্রোফাইল</h3><div class="list" id="profileData"></div></div><div class="card"><h3>🔐 PIN নিরাপত্তা</h3><p class="muted">বর্তমান PIN দিয়ে নতুন PIN সেট করুন।</p><button class="primary" onclick="openResetPin()">🔑 PIN রিসেট করুন</button></div><div class="card"><h3>🏆 ম্যাচ উইনার যাচাই</h3><p class="muted">পুরস্কারের টাকা পেতে আপনার প্যাকেজ কোড এবং ম্যাচ জয়ের স্ক্রিনশট এখানে জমা দিন। অ্যাডমিন তথ্য যাচাই করে অনুমোদন দিলে পুরস্কারের টাকা আপনার অ্যাকাউন্টে যোগ করা হবে।</p><button class="primary" onclick="openIdentityVerification()">🎟️ ম্যাচ উইনার যাচাই</button><div id="identityStatus" class="muted" style="margin-top:8px"></div></div><div class="card"><h3>📱 WhatsApp</h3><p class="muted">Admin-এর সেট করা নম্বরে যোগাযোগ করুন।</p><button class="primary" onclick="contactWhatsApp()">WhatsApp-এ যোগাযোগ</button></div><div class="card"><button class="secondary danger" onclick="logout()">লগআউট</button></div></section>
 </main>
 <nav class="bottom"><button class="nav active" data-screen="home" onclick="go('home')"><span class="i">⌂</span>হোম</button><button class="nav" data-screen="games" onclick="go('games')"><span class="i">🎮</span>গেম</button><button class="nav" data-screen="history" onclick="go('history')"><span class="i">🧾</span>হিস্টরি</button><button class="nav" data-screen="profile" onclick="go('profile')"><span class="i">👤</span>প্রোফাইল</button></nav>
 </div>
@@ -81,9 +81,10 @@ main{padding:14px}.screen{display:none}.screen.active{display:block}.hero{border
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updatePassword,reauthenticateWithCredential,EmailAuthProvider} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {getDatabase,ref,set,get,push,onValue,update} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import {getStorage,ref as storageRef,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 
 const firebaseConfig={apiKey:"AIzaSyD2DBF_GTIkQfa6G_3gZLfZ5n0MaUEBQ48",authDomain:"gamenest-bd.firebaseapp.com",databaseURL:"https://gamenest-bd-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"gamenest-bd",storageBucket:"gamenest-bd.firebasestorage.app",messagingSenderId:"1020093526765",appId:"1:1020093526765:web:525b5f303e0f08d7b692e4"};
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app);
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app),storage=getStorage(app);
 // Telegram Bot Token is never read by the User App. Admin Panel will keep it private and use it for notifications.
 let me=null,meData={},settings={whatsapp:"",withdrawFeePercent:10,depositMethods:{}},listeners=[];
 const $=id=>document.getElementById(id),money=n=>"৳"+Number(n||0).toFixed(2);
@@ -311,50 +312,42 @@ async function sha256Hex(value){
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 window.openIdentityVerification=async()=>{
-  let s=await get(ref(db,"identityVerifications/"+me.uid)).catch(()=>null);
-  let v=s?.exists()?s.val():null;
-  if(v?.status==="approved")return toast("আপনার ID ইতোমধ্যে Verified হয়েছে");
-  $("modalBody").innerHTML=`<h3>🪪 পরিচয় যাচাই</h3><div class="notice warn">একজনের NID/ID Card দ্বিতীয় কোনো User ব্যবহার করতে পারবে না। ভুল/অন্যের ID দিলে verification বন্ধ হতে পারে।</div><form id="identityForm" class="form"><div class="field"><label>NID / ID Number</label><input id="idNumber" inputmode="numeric" required placeholder="ID নম্বর"></div><div class="field"><label>ID Card Screenshot / Photo</label><input id="idPhoto" type="file" accept="image/*" required></div><button class="primary">🔐 নিরাপদে Verification Request পাঠান</button></form>`;
+  const snap=await get(ref(db,"winningClaims")).catch(()=>null);
+  const claims=snap?.exists()?snap.val():{};
+  const existing=Object.values(claims||{}).find(c=>c&&c.uid===me.uid&&["pending","approved"].includes(String(c.status||"").toLowerCase()));
+  if(existing)return toast(existing.status==="approved"?"এই জয়ের দাবি ইতোমধ্যে অনুমোদিত হয়েছে":"আপনার একটি জয়ের দাবি যাচাইয়ের অপেক্ষায় আছে");
+  $("modalBody").innerHTML=`<h3>🏆 ম্যাচ উইনার যাচাই</h3><div class="notice">পুরস্কারের টাকা পেতে আপনার প্যাকেজ কোড এবং ম্যাচ জয়ের স্ক্রিনশট এখানে জমা দিন। অ্যাডমিন তথ্য যাচাই করে অনুমোদন দিলে পুরস্কারের টাকা আপনার অ্যাকাউন্টে যোগ করা হবে।</div><form id="identityForm" class="form"><div class="field"><label>প্যাকেজ কোড</label><input id="idNumber" autocomplete="off" autocapitalize="characters" required placeholder="আপনার প্যাকেজ কোড"></div><div class="field"><label>ম্যাচ জয়ের স্ক্রিনশট</label><input id="winnerShot" type="file" accept="image/*" required></div><button class="primary">📩 প্যাকেজ কোড ও স্ক্রিনশট জমা দিন</button></form>`;
   $("modal").classList.remove("hidden");
   $("identityForm").onsubmit=async e=>{
     e.preventDefault();
-    const n=$("idNumber").value.trim(); const file=$("idPhoto").files?.[0];
-    if(!n||!file)return toast("ID Number ও ছবি দিন");
+    const code=$("idNumber").value.trim().toUpperCase().replace(/\\s+/g,"");
+    const file=$("winnerShot").files?.[0];
+    if(!code)return toast("আপনার প্যাকেজ কোড লিখুন");
+    if(!file)return toast("ম্যাচ জয়ের স্ক্রিনশট নির্বাচন করুন");
+    if(!file.type.startsWith("image/")||file.size>5*1024*1024)return toast("৫ MB-এর মধ্যে একটি ছবি নির্বাচন করুন");
     try{
-      const hash=await sha256Hex(n);
-      const existing=await get(ref(db,"identityIndex/"+hash));
-      if(existing.exists() && existing.val()?.uid!==me.uid){
-        await set(ref(db,"identityFlags/"+me.uid),{reason:"duplicate_identity",idHash:hash,status:"blocked",createdAt:Date.now()}).catch(()=>{});
-        
-        closeModal(); return toast("❌ এই ID আগে ব্যবহার হয়েছে। এই ID দিয়ে Verification Block করা হয়েছে; Admin Review প্রয়োজন।");
-      }
-      const reader=new FileReader();
-      reader.onload=async()=>{
-        const img=new Image(); img.onload=async()=>{
-          const max=900,scale=Math.min(1,max/Math.max(img.width,img.height)); const c=document.createElement("canvas");c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-          const photo=c.toDataURL("image/jpeg",0.65);
-          const now=Date.now();
-          await set(ref(db,"identityVerifications/"+me.uid),{uid:me.uid,name:meData.name||"",mobile:meData.mobile||"",idHash:hash,idPhoto:photo,status:"pending",createdAt:now});
-          try{
-            await set(ref(db,"identityIndex/"+hash),{uid:me.uid,createdAt:now});
-          }catch(indexErr){
-            await set(ref(db,"identityFlags/"+me.uid),{reason:"duplicate_identity",idHash:hash,status:"blocked",createdAt:Date.now()}).catch(()=>{});
-            await set(ref(db,"identityVerifications/"+me.uid+"/status"),"blocked").catch(()=>{});
-            closeModal(); return toast("❌ এই ID আগে ব্যবহার হয়েছে। Verification Block করা হয়েছে; Admin Review প্রয়োজন।");
-          }
-          closeModal(); toast("✅ ID Verification Request পাঠানো হয়েছে");
-          renderIdentityStatus();
-        };img.src=reader.result;
-      };reader.readAsDataURL(file);
-    }catch(err){console.error(err);toast("❌ Verification পাঠানো যায়নি: "+(err.message||err));}
+      const tokenSnap=await get(ref(db,"gameTokens/"+code));
+      if(!tokenSnap.exists())return toast("এই প্যাকেজ কোড পাওয়া যায়নি");
+      const token=tokenSnap.val()||{};
+      if(token.uid!==me.uid)return toast("এই প্যাকেজ কোড আপনার অ্যাকাউন্টের নয়");
+      const claimRef=push(ref(db,"winningClaims"));
+      const claimId=claimRef.key;
+      const imageRef=storageRef(storage,`winningClaims/${me.uid}/${claimId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`);
+      await uploadBytes(imageRef,file,{contentType:file.type});
+      const screenshotUrl=await getDownloadURL(imageRef);
+      const matchId=String(token.matchId||token.roomId||token.roomCode||"");
+      await set(claimRef,{claimId,uid:me.uid,userId:me.uid,name:meData.name||"",mobile:meData.mobile||"",packageCode:code,matchId,screenshotUrl,betAmount:Number(token.entryAmount||token.betAmount||token.amount||0),winningAmount:Number(token.winningAmount||Number(token.entryAmount||token.betAmount||token.amount||0)*2),status:"pending",verificationScore:null,createdAt:Date.now(),credited:false});
+      closeModal();toast("✅ জয়ের দাবি জমা হয়েছে। অ্যাডমিন যাচাই করবেন।");renderIdentityStatus();
+    }catch(err){console.error(err);toast("❌ জমা দেওয়া যায়নি: "+(err.message||err));}
   };
 };
 async function renderIdentityStatus(){
   const e=$("identityStatus"); if(!e||!me)return;
-  const s=await get(ref(db,"identityVerifications/"+me.uid)).catch(()=>null); const v=s?.exists()?s.val():null;
-  e.textContent=v?({pending:"⏳ Verification Pending",approved:"✅ ID Verified",rejected:"❌ Verification Rejected",blocked:"🚫 Verification Blocked"}[v.status]||v.status):"এখনো ID জমা দেওয়া হয়নি।";
+  const s=await get(ref(db,"winningClaims")).catch(()=>null);
+  const all=s?.exists()?s.val():{};
+  const v=Object.values(all||{}).filter(c=>c&&c.uid===me.uid).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0))[0];
+  e.textContent=v?({pending:"⏳ জয়ের দাবি অ্যাডমিন যাচাই করছেন",approved:"✅ জয়ের দাবি অনুমোদিত",rejected:"❌ জয়ের দাবি বাতিল হয়েছে"}[String(v.status||"").toLowerCase()]||"জয়ের দাবির অবস্থা: "+v.status):"এখনো কোনো জয়ের দাবি জমা দেওয়া হয়নি।";
 }
-
 window.openMoney=async type=>{
   let dep=type==="deposit",fee=Number(settings.withdrawFeePercent||0);
 
