@@ -6,144 +6,109 @@
 <title>GameNest BD • Carrom Online</title>
 <style>
 *{box-sizing:border-box}
-:root{--bg:#061126;--panel:#0a2145;--blue:#168cff;--purple:#6b27e8;--muted:#c9d8ee;--green:#16d66b}
-html,body{margin:0;background:radial-gradient(circle at 50% 0,#0b3270 0,#06152f 42%,#020817 100%);color:#fff;font-family:Arial,sans-serif}
-body{min-height:100vh}
-#app{width:min(100%,760px);margin:auto;padding:10px 10px 24px}
-.card{background:linear-gradient(135deg,#0b2348,#0a1833);border:1px solid #176bd0;border-radius:20px;padding:12px;margin-bottom:10px;box-shadow:0 8px 24px #0007}
-.top{display:flex;justify-content:space-between;align-items:center;gap:7px;background:linear-gradient(135deg,#084fb4,#102b63);border:1px solid #188cff;border-radius:18px;padding:8px 10px;box-shadow:0 8px 25px #0008}
-.topTitle{font-size:19px;font-weight:800;line-height:1.1}.topSub{color:#9ec8ff;font-size:10px;margin-top:3px}
-.roomBox{min-width:128px;text-align:center;background:#061a3a;border:1px solid #258fff;border-radius:15px;padding:5px 7px}.roomLabel{font-size:10px;color:#9ec8ff}.roomCode{font-size:18px;font-weight:900;letter-spacing:1px}.count{font-size:11px;color:#69f39c;margin-top:2px}
-.playerCard{display:grid;grid-template-columns:62px minmax(0,1fr);gap:9px;align-items:center;padding:6px 8px;border-radius:16px;margin:5px 0;background:linear-gradient(135deg,#084d9f,#0d2e63);border:1px solid #1994ff;box-shadow:0 7px 20px #0007}
-.playerCard.p2{background:linear-gradient(135deg,#3b11a4,#5a20dd);border-color:#8f5cff}
-.avatarBig{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;background:#6c432e;border:3px solid #22a0ff;overflow:hidden}.p2 .avatarBig{border-color:#c084ff}
-.avatarBig img{width:100%;height:100%;object-fit:cover}.pInfo{min-width:0}.pTop{display:flex;justify-content:space-between;gap:6px;align-items:center}.pName{font-size:17px;font-weight:900}.online{font-size:11px;color:#6aff9a}.pId{font-size:11px;color:#c8dcf7;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.details{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:5px}.detail{background:#061735aa;border:1px solid #2875bd;border-radius:11px;padding:7px 8px;min-width:0}.detailLabel{font-size:10px;color:#a9c6e8}.detailValue{font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.joined{color:#65f59a}.colorDot{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-2px;border:1px solid #999;margin-right:4px}.blackDot{background:#111}.whiteDot{background:#fff}
-.vs{height:18px;display:flex;align-items:center;justify-content:center;margin:2px auto;color:#fff;font-size:17px;font-weight:900}.vs span{background:linear-gradient(135deg,#123c78,#2d116d);border:2px solid #47aaff;border-radius:9px;padding:2px 10px;box-shadow:0 0 14px #168cff66}
-.boardTitle{text-align:center;color:#cfe7ff;font-weight:800;font-size:12px;margin:2px auto 2px;letter-spacing:.4px}.boardWrap{position:relative;width:min(92vw,500px);margin:6px auto 8px;padding:5px;border-radius:22px;background:linear-gradient(135deg,#0b6bcf,#5a21c8,#0b6bcf);box-shadow:0 12px 30px #0009}.boardInner{background:#241108;border-radius:18px;padding:4px}.boardInner canvas{width:100%;height:auto;display:block;border-radius:14px;touch-action:none}
-#game{display:block}#msg{min-height:20px;color:#e9c9a7;font-size:13px;margin-top:6px}
-input{width:100%;background:#120d0a;color:#fff;border:1px solid #6b4734;border-radius:10px;padding:12px;margin:5px 0}button{background:#c97932;color:#fff;border:0;border-radius:10px;padding:11px 14px;font-weight:700;margin:4px;cursor:pointer}.small{font-size:11px;color:#bfaea1}.muted{color:#b9cbe3;font-size:12px;line-height:1.5}
-.claimbox{background:#10243a;border:1px solid #2a8cff;border-radius:14px;padding:12px;margin-top:10px}.claimbox input[type=file]{background:#091625;border:1px solid #2a4968;border-radius:10px;padding:8px;width:100%;color:#fff}.claimbox button{width:100%;margin:6px 0 0}
-.matchJoin{padding:9px}.joinTitle{font-size:15px;font-weight:900;margin-bottom:4px}.joinBtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}.joinBtns button{margin:0;font-size:12px;padding:9px 8px}.matchJoin input{font-size:16px;text-transform:uppercase}.matchJoin input:focus{outline:2px solid #42a5ff;border-color:#42a5ff}.matchInfo{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.matchInfo .badge{background:#061735;border:1px solid #2869aa;border-radius:12px;padding:9px;color:#dceeff;font-size:12px}.matchInfo b{font-size:14px}
-@media(max-width:420px){#app{padding:3px 5px 12px}.top{padding:7px 8px;border-radius:16px}.topTitle{font-size:16px}.topSub{font-size:9px}.roomBox{min-width:108px;padding:4px 6px}.roomLabel{font-size:9px}.roomCode{font-size:15px}.count{font-size:10px}.playerCard{grid-template-columns:43px minmax(0,1fr);padding:5px 6px;margin:4px 0;border-radius:15px}.avatarBig{width:40px;height:40px;font-size:18px}.pName{font-size:14px}.pId{font-size:9px}.details{gap:3px;margin-top:4px}.detail{padding:4px 5px;border-radius:8px}.detailLabel{font-size:8px}.detailValue{font-size:10px}.vs{height:16px;margin:0 auto}.vs span{padding:1px 8px;font-size:14px;border-width:1px}.boardWrap{width:min(94vw,390px);margin:4px auto 6px;padding:3px;border-radius:18px}.boardInner{padding:2px;border-radius:13px}}
-
-/* Compact mobile play layout: keep both players and board visible with minimal scrolling */
-html,body{height:100%;min-height:0;overflow:hidden}
-#app{height:calc(100dvh - 6px);min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:3px 5px 4px;gap:3px}
-#game{min-height:0;height:100%;display:flex;flex-direction:column;gap:3px;overflow:hidden}
-.top{flex:0 0 auto;padding:4px 7px;border-radius:12px;min-height:42px}
-.topTitle{font-size:14px}.topSub{display:none}
-.roomBox{min-width:86px;padding:2px 5px}.roomLabel{font-size:8px}.roomCode{font-size:13px}.count{font-size:9px}
-.card.matchJoin{flex:0 0 auto;margin:0;padding:5px 7px;border-radius:11px}
-.matchJoin .joinTitle{font-size:11px;margin:0 0 3px}
-.matchJoin .muted,.matchJoin .small{display:none}
-.matchJoin input{width:100%;padding:5px 7px;margin:2px 0;font-size:12px;border-radius:7px}
-.joinBtns{gap:4px}.joinBtns button{font-size:10px;padding:5px 6px;border-radius:7px}
-.playerCard{flex:0 0 auto;grid-template-columns:30px minmax(0,1fr);gap:5px;padding:4px 6px;margin:0;border-radius:10px;box-shadow:none}
-.avatarBig{width:27px;height:27px;font-size:14px;border-width:2px}
-.pTop{gap:4px}.pName{font-size:11px;line-height:1.1}.online{font-size:8px}
-.pId{font-size:8px;margin-top:1px}
-.details{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin-top:3px}
-.detail{padding:3px 4px;border-radius:6px}.detailLabel{font-size:7px;white-space:nowrap}.detailValue{font-size:9px;white-space:nowrap}
-.vs{flex:0 0 13px;height:13px;margin:0;font-size:11px}.vs span{padding:0 7px;border-width:1px}
-.boardTitle{display:none}
-.matchStatus{margin-top:6px;padding:7px 9px;border-radius:8px;background:#102746;border:1px solid #2d5685;color:#e6f2ff;font-size:12px;line-height:1.35;font-weight:600;min-height:16px}
-.matchStatus[data-state="success"]{border-color:#238b61;background:#0d302b;color:#b9ffe0}
-.matchStatus[data-state="error"]{border-color:#a84c55;background:#351a25;color:#ffd0d5}
-.matchStatus[data-state="searching"]{border-color:#c58a32;background:#352915;color:#ffe2a3}
-.boardWrap{flex:1 1 auto;min-height:0;width:min(88vw, calc(100dvh - 345px), 500px);max-height:100%;aspect-ratio:1/1;margin:0 auto;padding:3px;border-radius:13px;display:flex;align-items:stretch}
-.boardInner{padding:2px;border-radius:10px;width:100%;height:100%}
-.boardInner canvas{width:100%;height:100%;object-fit:contain}
-.matchHeader{display:none}
-#game>.card:not(.matchJoin){display:none}
-@media(max-height:700px){.boardWrap{width:min(72vw,calc(100dvh - 275px),420px)}.detail{padding:2px}.pName{font-size:10px}}
-
+body{margin:0;background:#120d0a;color:#fff;font-family:Arial,sans-serif}
+#app{width:min(100%,720px);margin:auto;padding:12px}
+.card{background:#241914;border:1px solid #5b3a2a;border-radius:15px;padding:14px;margin-bottom:12px}
+h1,h2{margin:0 0 10px}
+h1{font-size:23px}.muted{color:#bfaea1;font-size:13px;line-height:1.5}
+input{width:100%;background:#120d0a;color:#fff;border:1px solid #6b4734;border-radius:10px;padding:12px;margin:5px 0}
+button{background:#c97932;color:#fff;border:0;border-radius:10px;padding:11px 14px;font-weight:700;margin:4px;cursor:pointer}
+button.secondary{background:#49352b}
+button.danger{background:#8f2727}
+.tabs{display:flex;gap:6px}.tabs button{flex:1}
+.row{display:flex;gap:7px;flex-wrap:wrap}.row>*{flex:1}
+#auth,#game{display:none}
+#board{width:100%;height:auto;display:block;border-radius:12px;touch-action:none;box-shadow:0 10px 30px #0008}
+.top{display:flex;justify-content:space-between;align-items:center}
+.badge{background:#3c2a20;padding:6px 9px;border-radius:20px;font-size:12px}
+#msg{min-height:20px;color:#e9c9a7;font-size:13px;margin-top:6px}
 </style>
 </head>
 <body>
 <div id="app">
+  <div id="auth" class="card">
+    <h1>🎯 GameNest BD Carrom</h1>
+    <div class="tabs">
+      <button id="loginTab">লগইন</button>
+      <button class="secondary" id="signupTab">সাইনআপ</button>
+    </div>
+
+    <div id="loginBox">
+      <input id="loginMobile" inputmode="numeric" maxlength="15" placeholder="মোবাইল নম্বর">
+      <input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="৬ সংখ্যার PIN">
+      <button id="loginBtn">লগইন</button>
+    </div>
+
+    <div id="signupBox" style="display:none">
+      <input id="signupName" maxlength="40" placeholder="আপনার নাম">
+      <input id="signupMobile" inputmode="numeric" maxlength="15" placeholder="মোবাইল নম্বর">
+      <input id="signupPin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN (৬ সংখ্যা)">
+      <input id="signupPin2" type="password" inputmode="numeric" maxlength="6" placeholder="PIN আবার লিখুন">
+      <input id="refMobile" inputmode="numeric" maxlength="15" placeholder="রেফার কোড (রেফারকারীর মোবাইল নম্বর)">
+      <button id="signupBtn">সাইনআপ করুন</button>
+      <div class="muted">রেফার কোড না থাকলে খালি রাখতে পারবেন।</div>
+    </div>
+    <div id="msg"></div>
+  </div>
+
   <div id="game">
-    <div class="top">
-      <div><div class="topTitle">👑 GameNest BD • Carrom</div><div class="topSub">Play • Win • Earn • Secure Match</div></div>
-      <div class="roomBox"><div class="roomLabel">Match / Room Code</div><div class="roomCode" id="roomCodeText">—</div><div class="count">🟢 <span id="playerCount">0/2</span> Players</div></div>
+    <div class="card top">
+      <div>
+        <b id="hello">Player</b><br>
+        <span id="mobileShow" class="muted"></span>
+      </div>
+      <button class="danger" id="logoutBtn">লগআউট</button>
     </div>
 
-    <div class="card matchJoin">
-      <div class="joinTitle">🎟️ Auto Matchmaking</div>
-      <div class="muted">শুধু নিজের কেনা Package Code দিন। একই Entry-র প্রতিপক্ষ খুঁজে পেলে ম্যাচ হবে। উপরের বক্সে সাদা সাইড, নিচের বক্সে কালো সাইড দেখানো হবে।</div>
-      <input id="packageCodeInput" type="text" inputmode="text" autocomplete="off" placeholder="আপনার Package Code" aria-label="Package Code">
-      <div class="joinBtns"><button id="findMatchBtn" type="button">🔎 প্রতিপক্ষ খুঁজুন</button><button id="cancelMatchBtn" type="button" style="background:#45546b" disabled>✖ অপেক্ষা বাতিল</button></div>
-      <div id="matchStatus" class="matchStatus" role="status" aria-live="polite">🎟️ আপনার প্যাকেজ কোড যাচাই করার পর প্রতিপক্ষ খুঁজতে পারবেন।</div>
-      <div class="small">ম্যাচ না পাওয়া পর্যন্ত প্যাকেজ ব্যবহার হবে না। ম্যাচ নিশ্চিত হলে এই প্যাকেজ অন্য ম্যাচে ব্যবহার করা যাবে না।</div>
+    <div class="card">
+      <div class="row">
+        <button id="createBtn">নতুন রুম</button>
+        <input id="roomInput" placeholder="Room ID">
+        <button id="joinBtn">Join</button>
+      </div>
+      <div id="roomText" class="muted">কোনো রুম নেই</div>
+      <div id="gameMsg" class="muted">প্রথমে নতুন রুম তৈরি করুন বা Room ID দিয়ে Join করুন।</div>
     </div>
 
-    <div id="player2Card" class="playerCard p2">
-      <div class="avatarBig">⚪</div><div class="pInfo"><div class="pTop"><div class="pName">উপরের খেলোয়াড় • সাদা সাইড</div><div class="online">● অপেক্ষা</div></div><div class="pId">User ID: —</div><div class="details"><div class="detail"><div class="detailLabel">🎟️ প্যাকেজ কোড</div><div class="detailValue" data-package>—</div></div><div class="detail"><div class="detailLabel">🆔 ম্যাচ</div><div class="detailValue" data-room>—</div></div><div class="detail"><div class="detailLabel">💰 Entry</div><div class="detailValue" data-bet>৳0</div></div><div class="detail"><div class="detailLabel">🎨 রঙ</div><div class="detailValue" data-color><span class="colorDot whiteDot"></span>সাদা</div></div></div></div>
-    </div>
-
-    <div class="vs"><span>VS</span></div>
-
-    <div class="boardTitle">🎯 Carrom</div><div class="boardWrap"><div class="boardInner"><canvas id="board" width="800" height="800"></canvas></div></div>
-
-    <div id="player1Card" class="playerCard">
-      <div class="avatarBig">⚫</div><div class="pInfo"><div class="pTop"><div class="pName">নিচের খেলোয়াড় • কালো সাইড</div><div class="online">● অপেক্ষা</div></div><div class="pId">User ID: —</div><div class="details"><div class="detail"><div class="detailLabel">🎟️ প্যাকেজ কোড</div><div class="detailValue" data-package>—</div></div><div class="detail"><div class="detailLabel">🆔 ম্যাচ</div><div class="detailValue" data-room>—</div></div><div class="detail"><div class="detailLabel">💰 Entry</div><div class="detailValue" data-bet>৳0</div></div><div class="detail"><div class="detailLabel">🎨 রঙ</div><div class="detailValue" data-color><span class="colorDot blackDot"></span>কালো</div></div></div></div>
-    </div>
-
-    <div class="card matchHeader">
-      <div class="matchInfo"><div class="badge">🎟️ আপনার Package: <b id="packageCodeText">—</b></div><div class="badge">🆔 Match: <b id="roomCodeText2">—</b></div></div>
-      <div class="matchInfo"><div class="badge">💰 Entry: <b id="betText">৳0</b></div><div class="badge">🏆 Winner: <b id="prizeText">৳0</b></div></div>
-      <div id="roomText" class="muted">Package যাচাই হচ্ছে...</div>
-      <div id="gameMsg" class="muted">Package Code থেকেই Entry Amount নির্ধারিত। কোনো Amount Input নেই।</div><div id="claimArea"></div>
-    </div>
+    <canvas id="board" width="800" height="800"></canvas>
 
     <div class="card">
       <b>Game Rules</b>
       <div class="muted">
         ২ জন খেলোয়াড়ের Room। নিজের turn-এ striker টেনে ছেড়ে shot দিন।
-        এই সংস্করণে game state Firebase-এ sync হয়। লগইন/সাইনআপ এই গেমে প্রয়োজন নেই; এগুলো আলাদা অ্যাপে থাকবে।
+        এই সংস্করণে game state Firebase-এ sync হয়। প্রকৃত অর্থের ম্যাচ/entry fee এখনো যুক্ত করা হয়নি।
       </div>
-      <div class="small">🔒 Match শুরু হলে Board Reset বন্ধ থাকে। Match ফলাফল Firebase-এ সংরক্ষিত হবে।</div>
+      <button id="resetBtn">বোর্ড রিসেট</button>
     </div>
   </div>
 </div>
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {initializeAuth,browserSessionPersistence,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,deleteUser} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {getDatabase,ref,set,get,update,onValue,runTransaction} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js";
 
 const firebaseConfig={
- apiKey:"AIzaSyD2DBF_GTIkQfa6G_3gZLfZ5n0MaUEBQ48",
- authDomain:"gamenest-bd.firebaseapp.com",
- databaseURL:"https://gamenest-bd-default-rtdb.asia-southeast1.firebasedatabase.app",
- projectId:"gamenest-bd",
- storageBucket:"gamenest-bd.firebasestorage.app",
- messagingSenderId:"1020093526765",
- appId:"1:1020093526765:web:525b5f303e0f08d7b692e4",
- measurementId:"G-Z66KWE43M6"
+ apiKey:"AIzaSyCVbUhLg_kd4idVv9vLGsAZldIIdpIcUFc",
+ authDomain:"carrom-4e38b.firebaseapp.com",
+ databaseURL:"https://carrom-4e38b-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId:"carrom-4e38b",
+ storageBucket:"carrom-4e38b.firebasestorage.app",
+ messagingSenderId:"290024184075",
+ appId:"1:290024184075:web:4cdfc838b9dbad50f76a0e",
+ measurementId:"G-30BLLQ3JCL"
 };
 
-// Authentication, purchases, package tokens and user profiles belong to gamenest-bd.
 const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
+// আলাদা browser tab/session-এ আলাদা account রাখার জন্য local persistence-এর বদলে session persistence।
+const auth=initializeAuth(app,{persistence:browserSessionPersistence});
 const db=getDatabase(app);
-// Spark-safe architecture: game board data uses a dedicated /carromRooms
-// path in the same project, so auth.uid is consistent with gameTokens/users.
-const carromDb=db;
-const functions=getFunctions(app,"asia-southeast1");
-const findCarromMatchCall=httpsCallable(functions,"findCarromMatch");
-const cancelCarromSearchCall=httpsCallable(functions,"cancelCarromSearch");
-let matchmakingActive=false,matchmakingTimer=null;
 
 const $=id=>document.getElementById(id);
-const gameBox=$("game");
-let currentUser=null,currentProfile=null,roomId=null,roomUnsub=null,purchaseId=null,packageCode="",accessPackage=null;
+const authBox=$("auth"),gameBox=$("game"),msg=$("msg");
+let currentUser=null,currentProfile=null,roomId=null,roomUnsub=null;
 const board=$("board"),ctx=board.getContext("2d");
 const R=22,SR=28;
-const qs=new URLSearchParams(location.search);
-const initialGameId=qs.get("gameId")||"";
-purchaseId=qs.get("purchaseId")||""; packageCode=qs.get("packageCode")||"";
 const pockets=[{x:38,y:38},{x:762,y:38},{x:38,y:762},{x:762,y:762}];
 let state=null,drag=false,ax=400,ay=690,dragStartX=400,dragStartY=690,rawAimX=400,rawAimY=690;
 
@@ -171,16 +136,7 @@ function emailForMobile(m){
  return cleanMobile(m)+"@gamenestbd.app";
 }
 function setMsg(t){msg.textContent=t}
-function gameMsg(t){
-  const status=$("matchStatus");
-  const hidden=$("gameMsg");
-  if(hidden) hidden.textContent=t;
-  if(status){
-    status.textContent=String(t||"");
-    const v=String(t||"").toLowerCase();
-    status.dataset.state=(v.includes("সমস্যা")||v.includes("ভুল")||v.includes("পাওয়া যায়নি")||v.includes("বাতিল"))?"error":((v.includes("খোঁজা হচ্ছে")||v.includes("waiting")||v.includes("অপেক্ষা"))?"searching":((v.includes("পাওয়া গেছে")||v.includes("সফল")||v.includes("যুক্ত")||v.includes("বিজয়ী"))?"success":"info"));
-  }
-}
+function gameMsg(t){$("gameMsg").textContent=t}
 
 function initialState(p1){
  const coins=[{id:"q",x:400,y:400,c:"red",in:false}];
@@ -193,33 +149,24 @@ function initialState(p1){
  }
  return {
    players:[p1],
-   playerMap:{[p1]:true},
    turn:p1,
    striker:{x:400,y:690,vx:0,vy:0},
    coins,
    playerColors:{[p1]:"black"},
-   playerProfiles:{[p1]:{name:"Player 1",photo:""}},
-   playerPackages:{[p1]:{packageCode:"",purchaseId:"",betAmount:0}},
    queenPending:false,
    queenOwner:null,
    queenCovered:false,
    turnOwnCoinPocketed:false,
    shotOwner:null,
    version:Date.now(),
-   winner:null,
-   betAmount:0,
-   winningAmount:0
+   winner:null
  };
 }
 
 function ensureGameMeta(st){
   if(!st)return;
   st.players=st.players||[];
-  st.playerMap=st.playerMap||{};
-  for(const uid of st.players){ if(uid) st.playerMap[uid]=true; }
   st.playerColors=st.playerColors||{};
-  st.playerProfiles=st.playerProfiles||{};
-  st.playerPackages=st.playerPackages||{};
   if(st.players[0]&&!st.playerColors[st.players[0]])st.playerColors[st.players[0]]="black";
   if(st.players[1]&&!st.playerColors[st.players[1]])st.playerColors[st.players[1]]="white";
   if(st.queenPending===undefined)st.queenPending=false;
@@ -252,33 +199,6 @@ function returnQueenToCenter(st){
   st.queenPending=false;
   st.queenOwner=null;
   st.queenCovered=false;
-}
-
-function renderPlayers(){
-  const ps=state?.players||[];
-  const renderCard=(id,index)=>{
-    const el=$(id); if(!el)return;
-    const uid=ps[index];
-    const prof=state?.playerProfiles?.[uid]||{};
-    const pkg=state?.playerPackages?.[uid]||{};
-    const bet=Number(pkg.betAmount||state?.betAmount||accessPackage?.betAmount||0);
-    const color=playerColor(uid,state)==="white"?"white":"black";
-    const name=prof.name||`Player ${index+1}`;
-    const online=uid?"● Joined":"● অপেক্ষা";
-    const photo=prof.photo;
-    const av=el.querySelector('.avatarBig');
-    if(av) av.innerHTML=photo?`<img src="${String(photo).replace(/"/g,'&quot;')}" alt="">`:`${index+1}`;
-    const nameEl=el.querySelector('.pName'); if(nameEl)nameEl.textContent=name;
-    const onlineEl=el.querySelector('.online'); if(onlineEl){onlineEl.textContent=online;onlineEl.className='online'+(uid?' joined':'');}
-    const idEl=el.querySelector('.pId'); if(idEl)idEl.textContent='User ID: '+(uid||'—');
-    const packageEl=el.querySelector('[data-package]'); if(packageEl)packageEl.textContent=pkg.packageCode||'—';
-    const roomEl=el.querySelector('[data-room]'); if(roomEl)roomEl.textContent=roomId||'—';
-    const betEl=el.querySelector('[data-bet]'); if(betEl)betEl.textContent='৳'+bet.toFixed(2);
-    const colorEl=el.querySelector('[data-color]'); if(colorEl)colorEl.innerHTML=color==='white'?'<span class="colorDot whiteDot"></span>সাদা':'<span class="colorDot blackDot"></span>কালো';
-    el.style.opacity=uid?'1':'0.72';
-  };
-  renderCard('player2Card',1);
-  renderCard('player1Card',0);
 }
 
 function draw(){
@@ -408,7 +328,7 @@ board.addEventListener("pointerup",e=>{
  const dx=p.x-a.x,dy=p.y-a.y,len=Math.hypot(dx,dy);
  if(len<6){draw();return;}
  // সামনে যত দূর টানবেন, তত বেশি power; অল্প টানেও shot হবে।
- const power=Math.min(34,Math.max(6,len/4));
+ const power=Math.min(24,Math.max(4,len/6));
  state.turnOwnCoinPocketed=false;
  state.shotOwner=currentUser.uid;
  s.vx=dx/len*power; s.vy=dy/len*power;
@@ -448,69 +368,6 @@ function resolveElastic(a,b,ra,rb){
   a.vx-=impulse*nx; a.vy-=impulse*ny;
   b.vx+=impulse*nx; b.vy+=impulse*ny;
   return true;
-}
-
-
-function escapeHtmlClaim(v){return String(v||"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function getWinningAmount(){
-  const bet=Number(state?.betAmount||0);
-  return Number.isFinite(bet)&&bet>0 ? Math.round(bet*2*100)/100 : 0;
-}
-function renderClaimArea(){
- const el=$("claimArea"); if(!el||!state||!currentUser)return;
- if(state.winner!==currentUser.uid){el.innerHTML="";return;}
- const amount=getWinningAmount();
- if(!amount){el.innerHTML='<div class="claimbox">⚠️ এই Room-এর Bet Amount পাওয়া যায়নি। Admin Game Package-এ Bet Amount সেট করুন।</div>';return;}
- if(state.claimId){
-   el.innerHTML=`<div class="claimbox"><b>🏆 আপনি বিজয়ী!</b><div class="small">Winning Amount: <b>৳${amount}</b></div><div id="claimStatus" class="small" style="margin-top:6px">Winning Claim পাঠানো হয়েছে। Admin approval অপেক্ষা করুন।</div></div>`;
-   return;
- }
- el.innerHTML=`<div class="claimbox"><b>🎉 অভিনন্দন, আপনি ৳${amount} জিতেছেন!</b><div class="small">আপনার প্যাকেজ কোড আগে থেকেই যুক্ত আছে। শুধু জয়ের স্ক্রিনশট জমা দিন; Match ID স্বয়ংক্রিয়ভাবে যুক্ত হবে। NID লাগবে না।</div><div class="small" style="margin:6px 0">🎟️ প্যাকেজ কোড: <b>${escapeHtmlClaim(packageCode)}</b><br>🆔 Match ID: <b>${escapeHtmlClaim(roomId)}</b></div><input id="winShot" type="file" accept="image/*"><button id="submitClaimBtn" onclick="submitWinningClaim()">📸 জয়ের স্ক্রিনশট জমা দিন</button><div class="small">Screenshot পরিষ্কার ও সম্পূর্ণ রাখুন।</div></div>`;
-}
-async function compressScreenshot(file){
- return await new Promise((resolve,reject)=>{
-   const img=new Image(), reader=new FileReader();
-   reader.onload=()=>{img.onload=()=>{
-     const max=900, scale=Math.min(1,max/Math.max(img.width,img.height));
-     const c=document.createElement("canvas"); c.width=Math.max(1,Math.round(img.width*scale)); c.height=Math.max(1,Math.round(img.height*scale));
-     c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-     resolve(c.toDataURL("image/jpeg",0.68));
-   };img.onerror=reject;img.src=reader.result}; reader.onerror=reject; reader.readAsDataURL(file);
- });
-}
-window.submitWinningClaim=async()=>{
- if(!state||state.winner!==currentUser.uid)return;
- const input=$("winShot"),btn=$("submitClaimBtn");
- if(!input?.files?.[0])return gameMsg("জয়ের স্ক্রিনশট দিন");
- if(state.claimId)return gameMsg("এই Claim ইতোমধ্যে পাঠানো হয়েছে");
- const amount=getWinningAmount(); if(!amount)return gameMsg("Bet Amount পাওয়া যায়নি");
- if(btn){btn.disabled=true;btn.textContent="⏳ Screenshot প্রস্তুত হচ্ছে...";}
- try{
-   const shot=await compressScreenshot(input.files[0]);
-   const existingSnap=await get(ref(db,"winningClaims"));
-   const existingClaims=existingSnap.val()||{};
-   if(Object.values(existingClaims).some(c=>c && String(c.matchId||c.roomId||"")===String(roomId) && c.status!=="rejected")){
-     throw new Error("এই Match ID-এর জন্য Claim ইতোমধ্যে জমা হয়েছে।");
-   }
-   const id=db.ref("winningClaims").push().key;
-   const qs=new URLSearchParams(location.search);
-   const profile=currentProfile||{};
-   const claim={id,uid:currentUser.uid,userId:currentUser.uid,userName:profile.name||qs.get("name")||"User",mobile:profile.mobile||qs.get("mobile")||"",gameId:qs.get("gameId")||"",gameName:"GameNest BD • Carrom",packageCode,purchaseId,matchId:roomId,roomId,winnerUid:currentUser.uid,betAmount:Number(state.betAmount||0),winningAmount:amount,screenshot:shot,status:"pending",notificationType:"winning_claim",createdAt:Date.now()};
-   await set(ref(db,"winningClaims/"+id),claim);
-   state.claimId=id;
-   renderClaimArea();
-   gameMsg("✅ Winning Claim Admin-এর কাছে পাঠানো হয়েছে।");
- }catch(e){console.error(e);gameMsg("Screenshot/Claim পাঠানো যায়নি: "+(e.message||e));if(btn){btn.disabled=false;btn.textContent="📸 জয়ের স্ক্রিনশট জমা দিন";}}
-};
-function checkWinner(uid){
- const color=playerColor(uid,state);
- const remaining=(state.coins||[]).filter(c=>!c.in && c.id!=="q" && c.c===color).length;
- if(remaining===0){
-   state.winner=uid;
-   state.winningAmount=getWinningAmount();
-   return true;
- }
- return false;
 }
 
 function pocketCoin(c){
@@ -608,16 +465,6 @@ async function finishTurn(){
  ensureGameMeta(state);
  const active=state.players||[];
  const oldPlayer=currentUser.uid;
- if(checkWinner(oldPlayer)){
-   resetStrikerForTurn(state);
-   state.shotActive=false;
-   state.shotOwner=null;
-   await saveRoomState();
-   renderClaimArea();
-   gameMsg("🏆 আপনি বিজয়ী! Screenshot দিয়ে Winning Claim করুন।");
-   finishing=false;
-   return;
- }
 
  // Queen নিলে নিজের colour-এর গুটি দিয়ে cover না করলে Queen মাঝখানে ফেরত।
  if(state.queenPending && state.queenOwner===oldPlayer && !state.queenCovered){
@@ -629,13 +476,10 @@ async function finishTurn(){
    state.turnOwnCoinPocketed=false;
  }
 
- // নিজের রঙের গুটি pocket করলে একই player-এর extra turn থাকবে;
- // miss/other case-এ opponent-এর turn হবে।
- if(active.length>1 && !state.turnOwnCoinPocketed){
+ // Shot শেষ হলে striker পরের player's fixed shooting position-এ যাবে।
+ if(active.length>1){
    const i=active.indexOf(oldPlayer);
    if(i>=0)state.turn=active[(i+1)%active.length];
- } else {
-   state.turn=oldPlayer;
  }
  resetStrikerForTurn(state);
  state.shotActive=false;
@@ -652,7 +496,7 @@ async function saveRoomState(){
  const payload={...state};
  delete payload.roomSyncVersion;
  state.roomSyncVersion=state.version;
- await update(ref(carromDb,"carromRooms/"+roomId),{state:payload});
+ await update(ref(db,"carromRooms/"+roomId),{state:payload});
 }
 
 function dbError(e){
@@ -665,103 +509,18 @@ function dbError(e){
   return "Firebase সমস্যা: "+m;
 }
 
-async function validatePackageAccess(){
-  if(!currentUser)return false;
-  const entered=String($("packageCodeInput")?.value||packageCode||"").trim().replace(/\s+/g,"").toUpperCase();
-  if(!entered)return gameMsg("আগে আপনার Package Code লিখুন।");
-  packageCode=entered;
-  try{
-    const tokenSnap=await get(ref(db,"gameTokens/"+packageCode));
-    if(!tokenSnap.exists())return gameMsg("এই Package Code পাওয়া যায়নি।");
-    const token=tokenSnap.val()||{};
-    if(token.uid!==currentUser.uid || token.status!=="active")return gameMsg("এই Package Code আপনার Active Package নয়।");
-    purchaseId=String(token.purchaseId||"");
-    if(!purchaseId)return gameMsg("Package Purchase ID পাওয়া যায়নি।");
-    const ps=await get(ref(db,"purchases/"+currentUser.uid+"/"+purchaseId));
-    if(!ps.exists())return gameMsg("Package পাওয়া যায়নি।");
-    const p=ps.val()||{};
-    if(p.status!=="active"&&p.status!=="approved")return gameMsg("এই Package Active নয়।");
-    if(String(p.packageCode||"").toUpperCase()!==packageCode)return gameMsg("Package Code সঠিক নয়।");
-    if(initialGameId && String(p.gameId||"")!==String(initialGameId))return gameMsg("ভুল Game Package।");
-    const bet=Number(p.betAmount||p.price||0);
-    if(!Number.isFinite(bet)||bet<=0)return gameMsg("Package Entry Amount সঠিক নয়।");
-    accessPackage={...p,token,betAmount:bet};
-    $("packageCodeText").textContent=packageCode;
-    $("betText").textContent="৳"+bet.toFixed(2);
-    $("prizeText").textContent="৳"+(bet*2).toFixed(2);
-    gameMsg("Package যাচাই সফল। এখন প্রতিপক্ষ খুঁজুন চাপুন।");
-    return true;
-  }catch(e){ gameMsg(dbError(e)); return false; }
-}
-
-function randomMatchCode(){
-  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let out="GN";
-  for(let i=0;i<6;i++)out+=chars[Math.floor(Math.random()*chars.length)];
-  return out;
-}
-
-async function findMatch(){
-  if(!currentUser)return gameMsg("GameNest User App-এ আগে Login করুন।");
-  if(matchmakingActive)return gameMsg("প্রতিপক্ষ খোঁজা হচ্ছে। একটু অপেক্ষা করুন।");
-  if(!(await validatePackageAccess()))return;
-  matchmakingActive=true;
-  $("findMatchBtn").disabled=true; $("cancelMatchBtn").disabled=false;
-  gameMsg("🔎 একই মূল্যের প্রতিপক্ষ খোঁজা হচ্ছে… ম্যাচ না হওয়া পর্যন্ত প্যাকেজ লক হবে না।");
-  try{
-    const result=await findCarromMatchCall({packageCode});
-    const data=result.data||{};
-    if(data.status==="matched" && data.roomId){
-      matchmakingActive=false; clearInterval(matchmakingTimer); matchmakingTimer=null;
-      $("findMatchBtn").disabled=false; $("cancelMatchBtn").disabled=true;
-      roomId=data.roomId; $("matchCodeInput") && ($("matchCodeInput").value=data.roomId);
-      gameMsg("✅ প্রতিপক্ষ পাওয়া গেছে! গেমে সংযোগ হচ্ছে…");
-      await watchRoom(data.roomId); return;
-    }
-    gameMsg("⏳ প্রতিপক্ষের অপেক্ষায় আছেন। একই Entry-র খেলোয়াড় যুক্ত হলে ম্যাচ তৈরি হবে।");
-    if(!matchmakingTimer)matchmakingTimer=setInterval(async()=>{
-      if(!matchmakingActive)return;
-      try{
-        const r=await findCarromMatchCall({packageCode});
-        const d=r.data||{};
-        if(d.status==="matched"&&d.roomId){
-          matchmakingActive=false;clearInterval(matchmakingTimer);matchmakingTimer=null;
-          $("findMatchBtn").disabled=false;$("cancelMatchBtn").disabled=true;
-          gameMsg("✅ প্রতিপক্ষ পাওয়া গেছে! গেমে সংযোগ হচ্ছে…");await watchRoom(d.roomId);
-        }
-      }catch(e){console.error(e);gameMsg(dbError(e));}
-    },4000);
-  }catch(e){
-    matchmakingActive=false;$("findMatchBtn").disabled=false;$("cancelMatchBtn").disabled=true;
-    gameMsg(e?.message||dbError(e));
-  }
-}
-async function cancelMatchSearch(){
-  if(!currentUser||!packageCode)return;
-  try{
-    const r=await cancelCarromSearchCall({packageCode});
-    if(r.data?.status==="matched"&&r.data?.roomId){
-      matchmakingActive=false;clearInterval(matchmakingTimer);matchmakingTimer=null;
-      $("findMatchBtn").disabled=false;$("cancelMatchBtn").disabled=true;
-      gameMsg("✅ ম্যাচ নিশ্চিত হয়েছে। গেমে সংযোগ হচ্ছে…");await watchRoom(r.data.roomId);return;
-    }
-    matchmakingActive=false;clearInterval(matchmakingTimer);matchmakingTimer=null;
-    $("findMatchBtn").disabled=false;$("cancelMatchBtn").disabled=true;
-    gameMsg("✖ অনুসন্ধান বাতিল হয়েছে। আপনার প্যাকেজ ব্যবহার হয়নি; চাইলে আবার চেষ্টা করুন।");
-  }catch(e){gameMsg(e?.message||dbError(e));}
-}
-
 async function watchRoom(id){
   if(roomUnsub)roomUnsub();
   roomId=id;
-  gameMsg("🔗 ম্যাচে সংযোগ করা হচ্ছে…");
+  $("roomInput").value=id;
+  gameMsg("Room সংযোগ হচ্ছে...");
   roomUnsub=onValue(
-    ref(carromDb,"carromRooms/"+id),
+    ref(db,"carromRooms/"+id),
     snap=>{
       const v=snap.val();
       if(!v){
         $("roomText").textContent="Room ID: "+id;
-        gameMsg("⚠️ ম্যাচের রুম পাওয়া যায়নি। আবার প্রতিপক্ষ খুঁজুন।");
+        gameMsg("Room পাওয়া যায়নি");
         return;
       }
       const incoming=v.state||null;
@@ -789,21 +548,14 @@ async function watchRoom(id){
         }
       }
 
-      $("roomText").textContent="Match Code: "+id+" • Entry: ৳"+Number(state?.betAmount||accessPackage?.betAmount||0).toFixed(2)+" • Players: "+(state?.players?.length||0)+"/2";
-      $("roomCodeText").textContent=id;
-      $("roomCodeText2").textContent=id;
-      $("playerCount").textContent=(state?.players?.length||0)+"/2";
-      $("betText").textContent="৳"+Number(state?.betAmount||accessPackage?.betAmount||0).toFixed(2);
-      $("prizeText").textContent="৳"+(Number(state?.betAmount||accessPackage?.betAmount||0)*2).toFixed(2);
-      renderPlayers();
-      renderClaimArea();
-      if(state?.winner)gameMsg(state.winner===currentUser.uid?"🏆 আপনি বিজয়ী! Screenshot দিয়ে Winning Claim করুন।":"🏆 প্রতিপক্ষ Winner হয়েছে।");
+      $("roomText").textContent="Room ID: "+id+" • Players: "+(state?.players?.length||0)+"/2";
+      if(state?.winner)gameMsg("Winner: "+state.winner);
       else if(state?.queenPending && state?.queenOwner===currentUser.uid)
         gameMsg("👑 লাল Queen নিয়েছেন — নিজের "+playerColor(currentUser.uid,state)+" গুটি দিয়ে Cover করুন");
       else if(state?.queenPending)
         gameMsg("👑 Queen Cover বাকি — Cover না হলে Queen মাঝখানে ফিরবে");
       else if(state?.shotActive && state?.turn===currentUser.uid)gameMsg("🎯 Shot চলছে...");
-      else if(state?.turn===currentUser.uid)gameMsg(state?.turnOwnCoinPocketed?"আপনি গুটি নিয়েছেন — আবার স্টিক মারুন":"আপনার টার্ন — সবুজ striker টেনে ছেড়ে দিন");
+      else if(state?.turn===currentUser.uid)gameMsg("আপনার টার্ন — সবুজ striker টেনে ছেড়ে দিন");
       else gameMsg("অন্য প্লেয়ারের টার্ন");
       draw();
     },
@@ -811,66 +563,149 @@ async function watchRoom(id){
   );
 }
 
-async function joinRoom(){
-  if(!currentUser)return gameMsg("GameNest User App-এ আগে Login করুন।");
+async function createRoom(){
+  if(!currentUser)return gameMsg("আগে লগইন করুন");
   try{
-    if(!(await validatePackageAccess()))return;
-    const id=String($("matchCodeInput")?.value||"").trim().replace(/\s+/g,"").toUpperCase();
-    if(!id)return gameMsg("Join করার জন্য Match Code লিখুন।");
-    const roomRef=ref(carromDb,"carromRooms/"+id),snap=await get(roomRef);
-    if(!snap.exists())return gameMsg("এই Match Code পাওয়া যায়নি: "+id);
-    const room=snap.val()||{};
-    const roomGame=String(room.gameId||"");
-    const myGame=String(accessPackage.gameId||initialGameId||"carrom");
-    if(roomGame && roomGame!==myGame)return gameMsg("এই Room অন্য Game-এর।");
-    const roomBet=Number(room.betAmount||room.state?.betAmount||0), myBet=Number(accessPackage.betAmount||0);
-    if(Math.abs(roomBet-myBet)>0.0001)return gameMsg(`Entry Amount mismatch: Room ৳${roomBet.toFixed(2)}, আপনার Package ৳${myBet.toFixed(2)}। Join বন্ধ।`);
-    const st=room.state||{};
-    if(st.winner)return gameMsg("এই Match ইতোমধ্যে শেষ হয়েছে।");
-    const players=Array.isArray(st.players)?st.players.filter(Boolean):[];
-    if(players.length>=2 && !players.includes(currentUser.uid))return gameMsg("এই Match 2/2 পূর্ণ।");
-    if(players.length===1 && players[0]===currentUser.uid)return watchRoom(id);
-    const memberRef=ref(carromDb,"carromRooms/"+id+"/members/"+currentUser.uid);
-    await set(memberRef,{uid:currentUser.uid,gameId:myGame,purchaseId,packageCode,betAmount:myBet,joinedAt:Date.now(),name:currentProfile?.name||"Player 2"});
-    const nextPlayers=players.includes(currentUser.uid)?players:[...players,currentUser.uid];
-    const profilesNow=st.playerProfiles||{};
-    const packagesNow=st.playerPackages||{};
-    profilesNow[currentUser.uid]={name:currentProfile?.name||"Player 2",photo:currentProfile?.photo||currentProfile?.photoURL||""};
-    packagesNow[currentUser.uid]={packageCode,purchaseId,betAmount:myBet};
-    if(!st.playerColors)st.playerColors={};
-    st.playerColors[players[0]||currentUser.uid]=st.playerColors[players[0]||currentUser.uid]||"black";
-    st.playerColors[currentUser.uid]=st.playerColors[currentUser.uid]||"white";
-    st.players=nextPlayers;
-    st.playerMap=st.playerMap||{}; st.playerMap[currentUser.uid]=true;
-    st.playerProfiles=profilesNow; st.playerPackages=packagesNow; st.betAmount=roomBet; st.winningAmount=roomBet*2;
-    st.turn=st.turn||nextPlayers[0];
-    await update(ref(carromDb,"carromRooms/"+id),{status:nextPlayers.length>=2?"ready":"waiting",state:st});
-    $("matchCodeInput").value=id;
+    const id=Math.random().toString(36).slice(2,8).toUpperCase();
+    const st=initialState(currentUser.uid);
+    const room={host:currentUser.uid,createdAt:Date.now(),state:st};
+
+    await set(ref(db,"carromRooms/"+id),room);
+
+    const check=await get(ref(db,"carromRooms/"+id));
+    if(!check.exists())throw new Error("Room Firebase-এ save হয়নি");
+
+    $("roomInput").value=id;
     await watchRoom(id);
-    gameMsg(nextPlayers.length>=2?"✅ দুই Player যুক্ত হয়েছে। Game শুরু করা যাবে।":"Match-এ যুক্ত হয়েছেন। দ্বিতীয় Player-এর অপেক্ষা করুন।");
-  }catch(e){console.error(e);gameMsg(dbError(e));}
+    gameMsg("Room তৈরি হয়েছে। এই Room ID অন্য খেলোয়াড়কে দিন: "+id);
+  }catch(e){
+    console.error(e);
+    gameMsg(dbError(e));
+  }
 }
 
-$("findMatchBtn").addEventListener("click",findMatch);
-$("cancelMatchBtn").addEventListener("click",cancelMatchSearch);
-$("packageCodeInput").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase();packageCode=e.target.value.trim();});
+async function joinRoom(){
+  if(!currentUser)return gameMsg("আগে লগইন করুন");
+  const id=$("roomInput").value.trim().replace(/\s+/g,"").toUpperCase();
+  if(!id)return gameMsg("Room ID দিন");
 
+  try{
+    gameMsg("Room খোঁজা হচ্ছে...");
+    const roomRef=ref(db,"carromRooms/"+id);
+    const snap=await get(roomRef);
 
+    if(!snap.exists())return gameMsg("Room পাওয়া যায়নি: "+id);
+
+    const room=snap.val();
+    const st=room.state;
+    if(!st)return gameMsg("Room state পাওয়া যায়নি");
+    if((st.players||[]).includes(currentUser.uid)){
+      await watchRoom(id);
+      return;
+    }
+    if((st.players||[]).length>=2)return gameMsg("এই Room ইতিমধ্যে পূর্ণ");
+
+    st.players=[...(st.players||[]),currentUser.uid];
+    st.shotActive=false;
+    st.shotOwner=null;
+    ensureGameMeta(st);
+    st.playerColors[currentUser.uid]=(st.players[0]===currentUser.uid)?"black":"white";
+    st.version=Date.now();
+
+    await update(roomRef,{state:st});
+    await watchRoom(id);
+  }catch(e){
+    console.error(e);
+    gameMsg(dbError(e));
+  }
+}
+
+async function signup(){
+ const name=$("signupName").value.trim();
+ const mobile=cleanMobile($("signupMobile").value);
+ const pin=$("signupPin").value.trim();
+ const pin2=$("signupPin2").value.trim();
+ const refMobile=cleanMobile($("refMobile").value);
+ if(name.length<2)return setMsg("সঠিক নাম দিন");
+ if(mobile.length<10||mobile.length>15)return setMsg("সঠিক মোবাইল নম্বর দিন");
+ if(!/^\d{6}$/.test(pin))return setMsg("PIN অবশ্যই ৬ সংখ্যার হতে হবে");
+ if(pin!==pin2)return setMsg("দুইটি PIN মিলছে না");
+ if(refMobile===mobile)return setMsg("নিজের নম্বরকে রেফার করা যাবে না");
+ try{
+   const cred=await createUserWithEmailAndPassword(auth,emailForMobile(mobile),pin);
+   const uid=cred.user.uid;
+   if(refMobile){
+     const rs=await get(ref(db,"usersByMobile/"+refMobile));
+     if(!rs.exists()){
+       await deleteUser(cred.user);
+       return setMsg("রেফার মোবাইল নম্বর পাওয়া যায়নি");
+     }
+   }
+   await set(ref(db,"users/"+uid),{
+     uid,name,mobile,referrerMobile:refMobile||null,
+     createdAt:Date.now(),gameName:name
+   });
+   await set(ref(db,"usersByMobile/"+mobile),{uid,name,mobile});
+   if(refMobile){
+     const rr=await get(ref(db,"referrals/"+refMobile+"/"+uid));
+     if(!rr.exists())await set(ref(db,"referrals/"+refMobile+"/"+uid),{
+       uid,name,mobile,createdAt:Date.now()
+     });
+   }
+   setMsg("সাইনআপ সফল");
+ }catch(e){setMsg(friendlyError(e))}
+}
+
+async function login(){
+ const mobile=cleanMobile($("loginMobile").value);
+ const pin=$("loginPin").value.trim();
+ if(mobile.length<10)return setMsg("সঠিক মোবাইল নম্বর দিন");
+ if(!/^\d{6}$/.test(pin))return setMsg("৬ সংখ্যার PIN দিন");
+ try{await signInWithEmailAndPassword(auth,emailForMobile(mobile),pin)}
+ catch(e){setMsg(friendlyError(e))}
+}
+function friendlyError(e){
+ const c=e?.code||"";
+ if(c.includes("email-already-in-use"))return "এই মোবাইল নম্বর দিয়ে আগে থেকেই অ্যাকাউন্ট আছে।";
+ if(c.includes("invalid-credential")||c.includes("wrong-password"))return "মোবাইল নম্বর বা PIN ভুল।";
+ if(c.includes("operation-not-allowed"))return "Firebase Authentication-এ Email/Password চালু করুন।";
+ if(c.includes("weak-password"))return "PIN অন্তত ৬ সংখ্যার হতে হবে।";
+ return "সমস্যা হয়েছে: "+(e?.message||"Unknown error");
+}
+
+$("loginTab").onclick=()=>{$("loginBox").style.display="block";$("signupBox").style.display="none";setMsg("")};
+$("signupTab").onclick=()=>{$("loginBox").style.display="none";$("signupBox").style.display="block";setMsg("")};
+$("signupBtn").onclick=signup;
+$("loginBtn").onclick=login;
+$("logoutBtn").onclick=()=>signOut(auth);
+$("createBtn").onclick=createRoom;
+$("joinBtn").onclick=joinRoom;
+$("resetBtn").onclick=async()=>{
+ if(!state||!roomId||state.turn!==currentUser.uid)return;
+ const players=[...(state.players||[])];
+ const colors={...(state.playerColors||{})};
+ const fresh=initialState(players[0]||currentUser.uid);
+ fresh.players=players;
+ fresh.playerColors=colors;
+ fresh.turn=players[0]||currentUser.uid;
+ fresh.shotActive=false;
+ fresh.shotOwner=null;
+ fresh.version=Date.now();
+ state=fresh;
+ await saveRoomState();
+};
 
 onAuthStateChanged(auth,async user=>{
  currentUser=user;
  if(!user){
-   gameBox.style.display="block";
-   gameMsg("⚠️ GameNest BD User App-এ আগে Login করুন, তারপর Carrom খুলুন।");
-   return;
+   authBox.style.display="block";gameBox.style.display="none";return;
  }
- gameBox.style.display="block";
- try{
-   const ps=await get(ref(db,"users/"+user.uid));
-   currentProfile=ps.exists()?(ps.val()||{}):{};
- }catch(e){currentProfile={};}
+ authBox.style.display="none";gameBox.style.display="block";
+ const snap=await get(ref(db,"users/"+user.uid));
+ currentProfile=snap.val()||{};
+ $("hello").textContent="👤 "+(currentProfile.name||"Player");
+ $("mobileShow").textContent=currentProfile.mobile?"মোবাইল: "+currentProfile.mobile:"";
  draw();
- try{ if(packageCode){ $("packageCodeInput").value=packageCode; } if(purchaseId&&packageCode){ setTimeout(()=>findMatch(),600); } }catch(e){}
 });
 </script>
 </body>
