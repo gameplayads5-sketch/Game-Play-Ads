@@ -113,14 +113,14 @@ import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.
 import {getDatabase,ref,set,get,update,onValue,runTransaction} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 const firebaseConfig={
- apiKey:"AIzaSyCVbUhLg_kd4idVv9vLGsAZldIIdpIcUFc",
- authDomain:"carrom-4e38b.firebaseapp.com",
- databaseURL:"https://carrom-4e38b-default-rtdb.asia-southeast1.firebasedatabase.app",
- projectId:"carrom-4e38b",
- storageBucket:"carrom-4e38b.firebasestorage.app",
- messagingSenderId:"290024184075",
- appId:"1:290024184075:web:4cdfc838b9dbad50f76a0e",
- measurementId:"G-30BLLQ3JCL"
+ apiKey:"AIzaSyD2DBF_GTIkQfa6G_3gZLfZ5n0MaUEBQ48",
+ authDomain:"gamenest-bd.firebaseapp.com",
+ databaseURL:"https://gamenest-bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId:"gamenest-bd",
+ storageBucket:"gamenest-bd.firebasestorage.app",
+ messagingSenderId:"1020093526765",
+ appId:"1:1020093526765:web:525b5f303e0f08d7b692e4",
+ measurementId:"G-Z66KWE43M6"
 };
 
 
@@ -796,43 +796,90 @@ async function watchRoom(id){
 async function joinRoom(){
   if(!currentUser)return gameMsg("GameNest User App-এ আগে Login করুন।");
   try{
-    if(!currentUser)return gameMsg("GameNest User App-এ আগে Login করুন।");
     const id=String($("matchCodeInput")?.value||$("packageCodeInput")?.value||"").trim().replace(/\s+/g,"").toUpperCase();
-    if(!id)return gameMsg("Join করার জন্য Match Code লিখুন।");
-    const roomRef=ref(carromDb,"carromRooms/"+id),snap=await get(roomRef);
-    if(!snap.exists())return gameMsg("এই Match Code পাওয়া যায়নি: "+id);
-    const room=snap.val()||{};
-    const roomGame=String(room.gameId||"");
-    const myGame=String(accessPackage.gameId||initialGameId||"carrom");
-    if(roomGame && roomGame!==myGame)return gameMsg("এই Room অন্য Game-এর।");
-    const roomBet=Number(room.betAmount||0), myBet=Number(accessPackage.betAmount||0);
-    if(room.allowedPlayers && !room.allowedPlayers.includes(currentUser.uid))return gameMsg("এই Match-এ Admin অন্য User নির্বাচন করেছেন।");
-    const st=room.state||{};
-    if(st.winner)return gameMsg("এই Match ইতোমধ্যে শেষ হয়েছে।");
+    if(!id)return gameMsg("Join করার জন্য Room ID লিখুন।");
+
+    // First check the live Carrom room path.
+    let roomRef=ref(carromDb,"carromRooms/"+id);
+    let snap=await get(roomRef);
+    let room=snap.exists()?(snap.val()||{}):null;
+
+    // Admin Panel currently stores approved room records under /rooms/{roomId}.
+    // Bridge a Carrom room from that path instead of reading gameId from null.
+    if(!room){
+      const legacySnap=await get(ref(db,"rooms/"+id));
+      if(!legacySnap.exists())return gameMsg("এই Room ID পাওয়া যায়নি। Admin Panel-এর approved Room ID দিন।");
+      const legacy=legacySnap.val()||{};
+      const gameName=String(legacy.gameName||legacy.name||"").toLowerCase();
+      const gameUrl=String(legacy.gameUrl||"").toLowerCase();
+      const isCarrom=/carrom|corrm|carom/.test(gameName+" "+gameUrl);
+      if(!isCarrom)return gameMsg("এই Room Carrom গেমের নয়। সঠিক Carrom Room ID দিন।");
+      if(!["active","ready","approved"].includes(String(legacy.status||"").toLowerCase()))
+        return gameMsg("এই Room এখনো Admin Approve করেননি।");
+      const bet=Number(legacy.betAmount||0);
+      const baseState=initialState(currentUser.uid);
+      baseState.gameId="carrom";
+      baseState.gameName="Carrom";
+      baseState.betAmount=bet;
+      baseState.winningAmount=Number(legacy.winningAmount||legacy.prizeAmount||bet*2);
+      baseState.packageCode=legacy.packageCode||"ADMIN";
+      baseState.purchaseId=legacy.purchaseId||"";
+      room={
+        roomId:id,gameId:"carrom",gameName:"Carrom",status:"active",
+        betAmount:bet,winningAmount:baseState.winningAmount,
+        password:legacy.password||"",packageCode:legacy.packageCode||"ADMIN",
+        purchaseId:legacy.purchaseId||"",allowedPlayers:legacy.allowedPlayers||null,
+        members:{[currentUser.uid]:{uid:currentUser.uid,gameId:"carrom",joinedAt:Date.now(),name:currentProfile?.name||"Player 1"}},
+        state:baseState
+      };
+      await set(roomRef,room);
+      snap=await get(roomRef);
+      room=snap.val()||room;
+    }
+
+    if(room.status!=="ready" && room.status!=="active" && room.status!=="approved")
+      return gameMsg("এই Match এখনো Admin Approve করেননি। Approve হওয়ার পর Code ব্যবহার করুন।");
+
+    // Never dereference a missing package or state object.
+    if(!accessPackage)accessPackage={gameId:initialGameId||"carrom",betAmount:0,packageCode:packageCode||"FREE"};
+    const roomName=String(room.gameName||room.name||"").toLowerCase();
+    const roomUrl=String(room.gameUrl||"").toLowerCase();
+    const isCarrom=/carrom|corrm|carom/.test(roomName+" "+roomUrl) || String(room.gameId||"").toLowerCase()==="carrom";
+    if(!isCarrom)return gameMsg("এই Room Carrom গেমের নয়। Admin Panel-এ Game হিসেবে Carrom নির্বাচন করুন।");
+
+    const roomBet=Number(room.betAmount||0);
+    if(Array.isArray(room.allowedPlayers)&&room.allowedPlayers.length&&!room.allowedPlayers.includes(currentUser.uid))
+      return gameMsg("এই Match-এ Admin অন্য User নির্বাচন করেছেন।");
+
+    let st=room.state&&typeof room.state==="object"?room.state:null;
+    if(st?.winner)return gameMsg("এই Match ইতোমধ্যে শেষ হয়েছে।");
+    if(!st)st=initialState(currentUser.uid);
     const players=Array.isArray(st.players)?st.players.filter(Boolean):[];
-    if(players.length>=2 && !players.includes(currentUser.uid))return gameMsg("এই Match 2/2 পূর্ণ।");
-    if(players.length===1 && players[0]===currentUser.uid)return watchRoom(id);
+    if(players.length>=2&&!players.includes(currentUser.uid))return gameMsg("এই Match 2/2 পূর্ণ।");
+    if(players.includes(currentUser.uid))return watchRoom(id);
+
     const memberRef=ref(carromDb,"carromRooms/"+id+"/members/"+currentUser.uid);
-    await set(memberRef,{uid:currentUser.uid,gameId:myGame,packageCode:"FREE",betAmount:roomBet,joinedAt:Date.now(),name:currentProfile?.name||"Player 2"});
-    const nextPlayers=players.includes(currentUser.uid)?players:[...players,currentUser.uid];
-    const profilesNow=st.playerProfiles||{};
-    const packagesNow=st.playerPackages||{};
-    profilesNow[currentUser.uid]={name:currentProfile?.name||"Player 2",photo:currentProfile?.photo||currentProfile?.photoURL||""};
-    packagesNow[currentUser.uid]={packageCode:room.packageCode||"ADMIN",purchaseId:room.purchaseId||"",betAmount:roomBet};
-    if(!st.playerColors)st.playerColors={};
-    st.playerColors[players[0]||currentUser.uid]=st.playerColors[players[0]||currentUser.uid]||"black";
-    st.playerColors[currentUser.uid]=st.playerColors[currentUser.uid]||"white";
-    st.players=nextPlayers; st.gameId=room.gameId||initialGameId||"carrom"; st.gameName=room.gameName||"Carrom"; st.packageCode=room.packageCode||"ADMIN"; st.purchaseId=room.purchaseId||""; st.betAmount=roomBet; st.winningAmount=Number(room.winningAmount||room.prizeAmount||roomBet*2);
-    st.playerMap=st.playerMap||{}; st.playerMap[currentUser.uid]=true;
-    st.playerProfiles=profilesNow; st.playerPackages=packagesNow; st.betAmount=roomBet; st.winningAmount=Number(room.winningAmount||room.prizeAmount||roomBet*2);
+    await set(memberRef,{uid:currentUser.uid,gameId:"carrom",packageCode:room.packageCode||"ADMIN",betAmount:roomBet,joinedAt:Date.now(),name:currentProfile?.name||"Player"});
+    const nextPlayers=[...players,currentUser.uid];
+    st.players=nextPlayers;
+    st.playerMap=st.playerMap||{};
+    st.playerMap[currentUser.uid]=true;
+    st.playerProfiles=st.playerProfiles||{};
+    st.playerProfiles[currentUser.uid]={name:currentProfile?.name||"Player",photo:currentProfile?.photo||currentProfile?.photoURL||""};
+    st.playerPackages=st.playerPackages||{};
+    st.playerPackages[currentUser.uid]={packageCode:room.packageCode||"ADMIN",purchaseId:room.purchaseId||"",betAmount:roomBet};
+    st.playerColors=st.playerColors||{};
+    if(nextPlayers.length===1)st.playerColors[currentUser.uid]="black";
+    else st.playerColors[currentUser.uid]="white";
+    st.gameId="carrom";st.gameName="Carrom";st.betAmount=roomBet;
+    st.winningAmount=Number(room.winningAmount||room.prizeAmount||roomBet*2);
     st.turn=st.turn||nextPlayers[0];
-    await update(ref(carromDb,"carromRooms/"+id),{status:nextPlayers.length>=2?"ready":"waiting",state:st});
+    await update(roomRef,{state:st,status:"active",gameId:"carrom",gameName:"Carrom"});
     $("matchCodeInput").value=id;
     await watchRoom(id);
-    gameMsg(nextPlayers.length>=2?"✅ দুই Player যুক্ত হয়েছে। Game শুরু করা যাবে।":"Match-এ যুক্ত হয়েছেন। দ্বিতীয় Player-এর অপেক্ষা করুন।");
+    gameMsg(nextPlayers.length>=2?"✅ দুই Player যুক্ত হয়েছেন।":"✅ Room-এ যুক্ত হয়েছেন। দ্বিতীয় Player-এর অপেক্ষা করুন।");
   }catch(e){console.error(e);gameMsg(dbError(e));}
 }
-
 $("findMatchBtn").addEventListener("click",findMatch);
 $("cancelMatchBtn").addEventListener("click",cancelMatchSearch);
 $("packageCodeInput").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase();packageCode=e.target.value.trim();});

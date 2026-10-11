@@ -336,7 +336,7 @@ window.openIdentityVerification=async()=>{
       await uploadBytes(imageRef,file,{contentType:file.type});
       const screenshotUrl=await getDownloadURL(imageRef);
       const matchId=String(token.matchId||token.roomId||token.roomCode||"");
-      await set(claimRef,{claimId,uid:me.uid,userId:me.uid,name:meData.name||"",mobile:meData.mobile||"",packageCode:code,matchId,screenshotUrl,betAmount:Number(token.entryAmount||token.betAmount||token.amount||0),winningAmount:Number(token.winningAmount||Number(token.entryAmount||token.betAmount||token.amount||0)*2),status:"pending",verificationScore:null,createdAt:Date.now(),credited:false});
+      await set(claimRef,{claimId,uid:me.uid,userId:me.uid,winnerUid:me.uid,name:meData.name||"",userName:meData.name||"",mobile:meData.mobile||"",packageCode:code,purchaseId:token.purchaseId||"",gameId:token.gameId||"",gameName:token.gameName||"",matchId,matchCode:matchId,roomId:matchId,opponentUid:token.opponentUid||"",playerUids:token.playerUids||[],screenshot:screenshotUrl,screenshotUrl,betAmount:Number(token.entryAmount||token.betAmount||token.amount||0),winningAmount:Number(token.winningAmount||Number(token.entryAmount||token.betAmount||token.amount||0)*2),status:"pending",verificationScore:null,createdAt:Date.now(),credited:false});
       closeModal();toast("✅ জয়ের দাবি জমা হয়েছে। অ্যাডমিন যাচাই করবেন।");renderIdentityStatus();
     }catch(err){console.error(err);toast("❌ জমা দেওয়া যায়নি: "+(err.message||err));}
   };
