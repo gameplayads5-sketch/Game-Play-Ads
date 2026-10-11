@@ -290,14 +290,12 @@ window.requestPurchase=async id=>{
     if(price<=0 || bet<=0) return toast("এই Game Package-এর Price/Entry Amount Admin সেট করেনি");
     if(Math.abs(price-bet)>0.0001) return toast("নিরাপত্তার জন্য Package Price এবং Match Entry সমান হতে হবে");
     const bal=Number(meData.balance||0);
-    try{
-      const ps=await get(ref(db,"purchases/"+me.uid));
-      const existing=Object.values(ps.val()||{}).find(x=>x.gameId===id && (x.status==="active"||x.status==="approved"));
-      if(existing)return toast("এই গেমের একটি Active Package আপনার আছে।");
-      const pendingSnap=await get(ref(db,"purchaseRequests"));
-      const hasPending=Object.values(pendingSnap.val()||{}).some(x=>x&&x.uid===me.uid&&x.gameId===id&&x.status==="pending");
-      if(hasPending)return toast("এই গেমের একটি Purchase Request ইতোমধ্যে Pending আছে।");
-    }catch(err){console.warn(err)}
+    // User-এর নিজের purchases path পড়া যাবে; purchaseRequests-এর পুরো root
+    // শুধু Admin পড়তে পারে, তাই User App থেকে ওই root read করা হবে না।
+    const ps=await get(ref(db,"purchases/"+me.uid));
+    const existing=Object.values(ps.val()||{}).find(x=>x.gameId===id && (x.status==="active"||x.status==="approved"));
+    if(existing)return toast("এই গেমের একটি Active Package আপনার আছে।");
+    // Pending duplicate যাচাই Admin-side-এ থাকবে; User App-কে নিষিদ্ধ root read করতে হবে না.
     if(bal<price)return toast("ব্যালেন্স কম। আগে টাকা জমা দিন।");
     const requestId=push(ref(db,"purchaseRequests")).key;
     const requestData={id:requestId,uid:me.uid,userName:meData.name||"",userMobile:meData.mobile||"",gameId:id,gameName:g.name||"",gameUrl:g.gameUrl||g.link||"",price:price,betAmount:bet,status:"pending",createdAt:Date.now()};
