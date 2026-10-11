@@ -52,7 +52,7 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-
 .matchStatus[data-state="success"]{border-color:#238b61;background:#0d302b;color:#b9ffe0}
 .matchStatus[data-state="error"]{border-color:#a84c55;background:#351a25;color:#ffd0d5}
 .matchStatus[data-state="searching"]{border-color:#c58a32;background:#352915;color:#ffe2a3}
-.winnerArea:empty{display:none}.winnerArea:not(:empty){display:block;flex:0 0 auto;max-height:34dvh;overflow:auto;position:relative;z-index:20}.winnerArea .claimbox{margin:0;background:linear-gradient(135deg,#123b2f,#10243a);border:2px solid #43e6a0;box-shadow:0 0 18px #19c98555}.winnerArea .claimbox h3{margin:0 0 6px;font-size:16px;color:#9dffd5}.winnerArea .claimbox .winnerFacts{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:7px 0}.winnerArea .claimbox .winnerFact{background:#061b2a;border:1px solid #2e7c68;border-radius:8px;padding:6px;font-size:10px;overflow-wrap:anywhere}.winnerArea .claimbox .winnerFact b{display:block;color:#8ddfc3;font-size:9px;margin-bottom:2px}.winnerArea .claimbox label{display:block;font-size:11px;margin-top:6px}.winnerArea .claimbox input[type=file]{margin:4px 0;padding:6px}.winnerArea .claimbox button{padding:8px;margin-top:4px}
+.winnerArea:empty{display:none}.winnerArea:not(:empty){position:fixed!important;inset:0!important;z-index:9999!important;display:flex!important;align-items:center!important;justify-content:center!important;max-height:none!important;overflow:auto!important;padding:14px!important;background:rgba(0,0,0,.82)!important;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}.winnerArea .claimbox{width:min(100%,480px);max-height:86dvh;overflow:auto;margin:0;background:linear-gradient(135deg,#123b2f,#10243a);border:2px solid #43e6a0;box-shadow:0 0 18px #19c98555}.winnerArea .claimbox h3{margin:0 0 6px;font-size:16px;color:#9dffd5}.winnerArea .claimbox .winnerFacts{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:7px 0}.winnerArea .claimbox .winnerFact{background:#061b2a;border:1px solid #2e7c68;border-radius:8px;padding:6px;font-size:10px;overflow-wrap:anywhere}.winnerArea .claimbox .winnerFact b{display:block;color:#8ddfc3;font-size:9px;margin-bottom:2px}.winnerArea .claimbox label{display:block;font-size:11px;margin-top:6px}.winnerArea .claimbox input[type=file]{margin:4px 0;padding:6px}.winnerArea .claimbox button{padding:8px;margin-top:4px}
 .boardWrap{flex:0 0 auto;min-height:0;width:min(94vw,560px);max-height:none;aspect-ratio:1/1;margin:2px auto 5px;padding:3px;border-radius:13px;display:flex;align-items:stretch}
 .boardInner{padding:2px;border-radius:10px;width:100%;height:100%}
 .boardInner canvas{width:100%;height:100%;object-fit:contain}
@@ -153,6 +153,11 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-
 @media(max-height:780px) and (max-width:600px){
   .boardWrap{width:min(86vw,460px)!important}
 }
+
+/* Winner popup floats near the TOP of the screen so it is not hidden below the board */
+.winnerArea:empty{display:none}
+.winnerArea:not(:empty){position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;max-height:100dvh!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding:calc(8px + env(safe-area-inset-top)) 10px calc(12px + env(safe-area-inset-bottom))!important;background:rgba(0,0,0,.78)!important;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.winnerArea .claimbox{position:relative!important;width:min(100%,480px)!important;max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;overflow-y:auto!important;margin:0 auto!important;flex:0 0 auto!important;border:2px solid #43e6a0!important;box-shadow:0 8px 30px #000c,0 0 18px #19c98555!important}
 </style>
 </head>
 <body>
@@ -601,10 +606,10 @@ function renderClaimArea(){
  const winnerProfile=state.playerProfiles?.[winnerUid]||{};
  const winnerName=winnerProfile.name||((won&&(currentUser?.displayName))||"Player");
  const winnerMobile=winnerProfile.mobile||winnerProfile.phone||((won&&currentUser?.phoneNumber)||"");
- const amount=Number(state.winningAmount||0);
+ const amount=getWinningAmount();
  if(!won){
    const shownWinnerName=winnerProfile.name||"প্রতিপক্ষ";
-   el.innerHTML=`<div class="claimbox"><h3>🏁 ম্যাচ শেষ</h3><div class="small">এই ম্যাচে আপনি বিজয়ী নন।</div><div class="winnerFacts"><div class="winnerFact"><b>বিজয়ীর নাম</b>${escapeHtmlClaim(shownWinnerName)}</div><div class="winnerFact"><b>বিজয়ী User ID</b>${escapeHtmlClaim(winnerUid)}</div><div class="winnerFact"><b>Room ID</b>${escapeHtmlClaim(roomId||"")}</div><div class="winnerFact"><b>পুরস্কার</b>৳${amount.toFixed(2)}</div></div></div>`;
+   el.innerHTML=`<div class="claimbox"><h3>🏁 ম্যাচ শেষ</h3><div class="small">এই ম্যাচে আপনি বিজয়ী নন।</div><button type="button" onclick="document.getElementById('claimArea').innerHTML=''" style="background:#34465c">বন্ধ করুন</button><div class="winnerFacts"><div class="winnerFact"><b>বিজয়ীর নাম</b>${escapeHtmlClaim(shownWinnerName)}</div><div class="winnerFact"><b>বিজয়ী User ID</b>${escapeHtmlClaim(winnerUid)}</div><div class="winnerFact"><b>Room ID</b>${escapeHtmlClaim(roomId||"")}</div><div class="winnerFact"><b>পুরস্কার</b>৳${amount.toFixed(2)}</div></div></div>`;
    return;
  }
  const prizeForm=amount>0?`<div class="small">পুরস্কার পেতে ম্যাচের স্ক্রিনশট জমা দিন। Room ID স্বয়ংক্রিয়ভাবে Claim-এর সঙ্গে Admin-এর কাছে যাবে।</div>
@@ -615,7 +620,7 @@ function renderClaimArea(){
    `<div class="small">এই Room-এ নগদ পুরস্কারের পরিমাণ নির্ধারিত নেই। Admin Panel-এ পুরস্কার সেট না করা পর্যন্ত Winning Claim জমা দেওয়া যাবে না।</div>`;
  el.innerHTML=`<div class="claimbox" role="status">
    <h3>🎉 অভিনন্দন ${escapeHtmlClaim(winnerName)}! আপনি Carrom ম্যাচ জিতেছেন!</h3>
-   <div class="small">আপনার জয়ের তথ্য নিচে পরিষ্কারভাবে দেখানো হয়েছে। Admin যাচাই করে Claim Approve করলে পুরস্কার যোগ হবে।</div>
+   <div class="small">আপনার জয়ের তথ্য নিচে পরিষ্কারভাবে দেখানো হয়েছে। Admin যাচাই করে Claim Approve করলে পুরস্কার যোগ হবে।</div><button type="button" onclick="document.getElementById('claimArea').innerHTML=''" style="background:#34465c">পরে Claim করব / বন্ধ করুন</button>
    <div class="winnerFacts">
      <div class="winnerFact"><b>বিজয়ীর নাম</b>${escapeHtmlClaim(winnerName)}</div>
      <div class="winnerFact"><b>বিজয়ী User ID</b>${escapeHtmlClaim(winnerUid)}</div>
