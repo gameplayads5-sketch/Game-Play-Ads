@@ -51,6 +51,7 @@ html,body{height:100%;min-height:0;overflow:hidden}
 .matchStatus[data-state="success"]{border-color:#238b61;background:#0d302b;color:#b9ffe0}
 .matchStatus[data-state="error"]{border-color:#a84c55;background:#351a25;color:#ffd0d5}
 .matchStatus[data-state="searching"]{border-color:#c58a32;background:#352915;color:#ffe2a3}
+.winnerArea:empty{display:none}.winnerArea:not(:empty){display:block;flex:0 0 auto;max-height:34dvh;overflow:auto;position:relative;z-index:20}.winnerArea .claimbox{margin:0;background:linear-gradient(135deg,#123b2f,#10243a);border:2px solid #43e6a0;box-shadow:0 0 18px #19c98555}.winnerArea .claimbox h3{margin:0 0 6px;font-size:16px;color:#9dffd5}.winnerArea .claimbox .winnerFacts{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:7px 0}.winnerArea .claimbox .winnerFact{background:#061b2a;border:1px solid #2e7c68;border-radius:8px;padding:6px;font-size:10px;overflow-wrap:anywhere}.winnerArea .claimbox .winnerFact b{display:block;color:#8ddfc3;font-size:9px;margin-bottom:2px}.winnerArea .claimbox label{display:block;font-size:11px;margin-top:6px}.winnerArea .claimbox input[type=file]{margin:4px 0;padding:6px}.winnerArea .claimbox button{padding:8px;margin-top:4px}
 .boardWrap{flex:1 1 auto;min-height:0;width:min(88vw, calc(100dvh - 345px), 500px);max-height:100%;aspect-ratio:1/1;margin:0 auto;padding:3px;border-radius:13px;display:flex;align-items:stretch}
 .boardInner{padding:2px;border-radius:10px;width:100%;height:100%}
 .boardInner canvas{width:100%;height:100%;object-fit:contain}
@@ -64,13 +65,13 @@ html,body{height:100%;min-height:0;overflow:hidden}
 <div id="app">
   <div id="game">
     <div class="top">
-      <div><div class="topTitle">👑 GameNest BD • Carrom</div><div class="topSub">Free Play • Room ID দিয়ে Join করুন</div></div>
+      <div><div class="topTitle">👑 GameNest BD • Carrom</div><div class="topSub">Online Match • Room ID দিয়ে Join করুন</div></div>
       <div class="roomBox"><div class="roomLabel">Match / Room Code</div><div class="roomCode" id="roomCodeText">—</div><div class="count">🟢 <span id="playerCount">0/2</span> Players</div></div>
     </div>
 
     <div class="card matchJoin">
       <div class="joinTitle">🎮 Admin-এর দেওয়া Room ID দিয়ে খেলুন</div>
-      <div class="muted">Admin যে Room ID দিয়েছেন সেটি লিখে Join করুন। একই Room ID-তে সর্বোচ্চ ২ জন খেলোয়াড় খেলতে পারবেন। এটি বিনামূল্যের খেলার মোড; Entry fee বা নগদ পুরস্কার নেই।</div>
+      <div class="muted">Admin যে Room ID দিয়েছেন সেটি লিখে Join করুন। একই Room ID-তে সর্বোচ্চ ২ জন খেলোয়াড় খেলতে পারবেন। Entry ও পুরস্কারের পরিমাণ Admin Panel-এ সেট করা থাকলে সেই তথ্য অনুযায়ী দেখানো হবে।</div>
       <input id="packageCodeInput" type="text" inputmode="text" autocomplete="off" placeholder="Admin-এর দেওয়া Room ID" aria-label="Room ID">
       <div class="joinBtns"><button id="findMatchBtn" type="button">🔗 Room ID দিয়ে Join করুন</button><button id="cancelMatchBtn" type="button" style="background:#45546b" disabled>✖ সংযোগ বাতিল</button></div>
       <div id="matchStatus" class="matchStatus" role="status" aria-live="polite">Admin-এর দেওয়া Room ID লিখে Join করুন।</div>
@@ -89,11 +90,13 @@ html,body{height:100%;min-height:0;overflow:hidden}
       <div class="avatarBig">⚫</div><div class="pInfo"><div class="pTop"><div class="pName">নিচের খেলোয়াড় • কালো সাইড</div><div class="online">● অপেক্ষা</div></div><div class="pId">User ID: —</div><div class="details"><div class="detail"><div class="detailLabel">🎮 মোড</div><div class="detailValue" data-package>FREE PLAY</div></div><div class="detail"><div class="detailLabel">🆔 ম্যাচ</div><div class="detailValue" data-room>—</div></div><div class="detail"><div class="detailLabel">💰 Entry</div><div class="detailValue" data-bet>৳0</div></div><div class="detail"><div class="detailLabel">🎨 রঙ</div><div class="detailValue" data-color><span class="colorDot blackDot"></span>কালো</div></div></div></div>
     </div>
 
+    <div id="claimArea" class="winnerArea" aria-live="polite"></div>
+
     <div class="card matchHeader">
       <div class="matchInfo"><div class="badge">🎟️ আপনার Package: <b id="packageCodeText">—</b></div><div class="badge">🆔 Match: <b id="roomCodeText2">—</b></div></div>
       <div class="matchInfo"><div class="badge">💰 Entry: <b id="betText">৳0</b></div><div class="badge">🏆 Winner: <b id="prizeText">৳0</b></div></div>
       <div id="roomText" class="muted">Package যাচাই হচ্ছে...</div>
-      <div id="gameMsg" class="muted">Package Code থেকেই Entry Amount নির্ধারিত। কোনো Amount Input নেই।</div><div id="claimArea"></div>
+      <div id="gameMsg" class="muted">Package Code থেকেই Entry Amount নির্ধারিত। কোনো Amount Input নেই।</div>
     </div>
 
     <div class="card">
@@ -110,7 +113,7 @@ html,body{height:100%;min-height:0;overflow:hidden}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import {getDatabase,ref,set,get,update,onValue,runTransaction} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import {getDatabase,ref,set,get,update,remove,onValue,runTransaction} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 const firebaseConfig={
  apiKey:"AIzaSyD2DBF_GTIkQfa6G_3gZLfZ5n0MaUEBQ48",
@@ -337,6 +340,16 @@ function strikerDragAnchor(st=state){
 
 board.addEventListener("pointerdown",e=>{
  if(!state||!roomId||state.winner)return;
+ if(!currentUser)return;
+ // দুইজন খেলোয়াড় যুক্ত না হওয়া পর্যন্ত একা practice/shot বন্ধ থাকবে।
+ if(!Array.isArray(state.players)||state.players.length<2){
+   gameMsg("⏳ প্রতিপক্ষ যুক্ত হওয়ার অপেক্ষায় আছেন। দুইজন যুক্ত হলে খেলা শুরু হবে।");
+   return;
+ }
+ if(!state.players.includes(currentUser.uid)){
+   gameMsg("এই Room-এ আপনার Player হিসেবে যোগদান সম্পন্ন হয়নি।");
+   return;
+ }
  if(state.turn!==currentUser.uid){
    gameMsg("এখন আপনার টার্ন নয় — অন্য প্লেয়ারের টার্ন।");
    return;
@@ -398,7 +411,13 @@ board.addEventListener("pointerup",e=>{
  if(!drag)return;
  drag=false;
  try{board.releasePointerCapture(e.pointerId)}catch(_){ }
- if(!state||!roomId||state.turn!==currentUser.uid||state.winner)return;
+ if(!state||!roomId||!currentUser||state.winner)return;
+ if(!Array.isArray(state.players)||state.players.length<2){
+   gameMsg("⏳ প্রতিপক্ষ যুক্ত হওয়ার অপেক্ষায় আছেন। দুইজন যুক্ত হলে খেলা শুরু হবে।");
+   draw();
+   return;
+ }
+ if(!state.players.includes(currentUser.uid)||state.turn!==currentUser.uid)return;
  const p=pos(e),s=state.striker;
  const a={x:dragStartX,y:dragStartY};
  // সরাসরি সামনে টান: যে দিকে আঙুল টানবেন, striker সেই দিকেই যাবে।
@@ -460,18 +479,35 @@ function renderClaimArea(){
  if(!el)return;
  if(!state?.winner){el.innerHTML="";return;}
  const won=String(state.winner)===String(currentUser?.uid);
+ const players=Array.isArray(state.players)?state.players.filter(Boolean):[];
+ const winnerUid=String(state.winner||"");
+ const winnerProfile=state.playerProfiles?.[winnerUid]||{};
+ const winnerName=winnerProfile.name||((won&&(currentUser?.displayName))||"Player");
+ const winnerMobile=winnerProfile.mobile||winnerProfile.phone||((won&&currentUser?.phoneNumber)||"");
+ const amount=Number(state.winningAmount||0);
  if(!won){
-   el.innerHTML='<div class="claimbox"><b>🏁 ম্যাচ শেষ</b><div class="small">এই ম্যাচে আপনি বিজয়ী নন।</div></div>';
+   const shownWinnerName=winnerProfile.name||"প্রতিপক্ষ";
+   el.innerHTML=`<div class="claimbox"><h3>🏁 ম্যাচ শেষ</h3><div class="small">এই ম্যাচে আপনি বিজয়ী নন।</div><div class="winnerFacts"><div class="winnerFact"><b>বিজয়ীর নাম</b>${escapeHtmlClaim(shownWinnerName)}</div><div class="winnerFact"><b>বিজয়ী User ID</b>${escapeHtmlClaim(winnerUid)}</div><div class="winnerFact"><b>Room ID</b>${escapeHtmlClaim(roomId||"")}</div><div class="winnerFact"><b>পুরস্কার</b>৳${amount.toFixed(2)}</div></div></div>`;
    return;
  }
- el.innerHTML=`<div class="claimbox">
-   <b>🏆 অভিনন্দন! আপনি বিজয়ী</b>
-   <div class="small">Admin যাচাই করে Approve করলে Winning Amount যোগ হবে।</div>
-   <div class="small" style="margin:7px 0">Winner ID: ${escapeHtmlClaim(currentUser?.uid)}<br>Match Code: ${escapeHtmlClaim(roomId||"")}<br>Winning Amount: ৳${Number(state.winningAmount||0).toFixed(2)}</div>
-   <label for="winnerScreenshot">ম্যাচের Screenshot জমা দিন</label>
+ const prizeForm=amount>0?`<div class="small">পুরস্কার পেতে ম্যাচের স্ক্রিনশট জমা দিন। Room ID স্বয়ংক্রিয়ভাবে Claim-এর সঙ্গে Admin-এর কাছে যাবে।</div>
+   <label for="winnerScreenshot">📸 ম্যাচের Screenshot নির্বাচন করুন</label>
    <input id="winnerScreenshot" type="file" accept="image/*">
-   <button type="button" id="submitClaimBtn" onclick="submitWinningClaim()">📨 Winner Claim জমা দিন</button>
-   <div id="claimSubmitMsg" class="small" aria-live="polite"></div>
+   <button type="button" id="submitClaimBtn" onclick="submitWinningClaim()">📨 Screenshot ও Room ID জমা দিন</button>
+   <div id="claimSubmitMsg" class="small" aria-live="polite"></div>`:
+   `<div class="small">এই Room-এ নগদ পুরস্কারের পরিমাণ নির্ধারিত নেই। Admin Panel-এ পুরস্কার সেট না করা পর্যন্ত Winning Claim জমা দেওয়া যাবে না।</div>`;
+ el.innerHTML=`<div class="claimbox" role="status">
+   <h3>🎉 অভিনন্দন ${escapeHtmlClaim(winnerName)}! আপনি Carrom ম্যাচ জিতেছেন!</h3>
+   <div class="small">আপনার জয়ের তথ্য নিচে পরিষ্কারভাবে দেখানো হয়েছে। Admin যাচাই করে Claim Approve করলে পুরস্কার যোগ হবে।</div>
+   <div class="winnerFacts">
+     <div class="winnerFact"><b>বিজয়ীর নাম</b>${escapeHtmlClaim(winnerName)}</div>
+     <div class="winnerFact"><b>বিজয়ী User ID</b>${escapeHtmlClaim(winnerUid)}</div>
+     <div class="winnerFact"><b>ফোন / মোবাইল</b>${escapeHtmlClaim(winnerMobile||"প্রোফাইলে নেই")}</div>
+     <div class="winnerFact"><b>Room ID / Match Code</b>${escapeHtmlClaim(roomId||"")}</div>
+     <div class="winnerFact"><b>পুরস্কারের পরিমাণ</b><strong>৳${amount.toFixed(2)}</strong></div>
+     <div class="winnerFact"><b>ম্যাচের খেলোয়াড়</b>${players.length}/2</div>
+   </div>
+   ${prizeForm}
  </div>`;
 }
 
@@ -492,6 +528,7 @@ window.submitWinningClaim=async()=>{
  if(!currentUser)return say("প্রথমে User App-এ Login করুন।");
  if(!state?.winner||String(state.winner)!==String(currentUser.uid))return say("শুধু ম্যাচের বিজয়ী Claim জমা দিতে পারবেন।");
  if(!roomId)return say("Match Code পাওয়া যায়নি।");
+ if(!(Number(state.winningAmount||0)>0))return say("এই ম্যাচে নগদ পুরস্কার নির্ধারিত নেই। Admin-এর সঙ্গে যোগাযোগ করুন।");
  if(!file)return say("ম্যাচের Screenshot নির্বাচন করুন।");
  if(!file.type.startsWith("image/"))return say("শুধু ছবি আপলোড করুন।");
  if(file.size>8*1024*1024)return say("ছবির সাইজ 8MB-এর কম রাখুন।");
@@ -514,7 +551,7 @@ window.submitWinningClaim=async()=>{
    const payload={
      uid:currentUser.uid,winnerUid:currentUser.uid,userId:currentUser.uid,
      userName:ownProfile.name||currentUser.displayName||"Player",
-     mobile:ownProfile.mobile||currentUser.phoneNumber||"",
+     mobile:ownProfile.mobile||ownProfile.phone||currentUser.phoneNumber||"",
      gameId:state.gameId||initialGameId||"carrom",gameName:state.gameName||"Carrom",
      roomId:String(roomId),matchId:String(roomId),matchCode:String(roomId),
      packageCode:state.packageCode||packageCode||"FREE",purchaseId:state.purchaseId||purchaseId||"",
@@ -542,9 +579,11 @@ window.submitWinningClaim=async()=>{
 function checkWinner(uid){
  const color=playerColor(uid,state);
  const remaining=(state.coins||[]).filter(c=>!c.in && c.id!=="q" && c.c===color).length;
- if(remaining===0){
+ const ownQueenNeedsCover=state.queenPending && state.queenOwner===uid && !state.queenCovered;
+ if(remaining===0 && !ownQueenNeedsCover){
    state.winner=uid;
    state.winningAmount=getWinningAmount();
+   state.endedAt=Date.now();
    return true;
  }
  return false;
@@ -553,14 +592,15 @@ function checkWinner(uid){
 function pocketCoin(c){
   if(c.in)return;
   c.in=true;c.vx=0;c.vy=0;
-
+  const shooter=state.shotOwner||currentUser?.uid;
+  if(!shooter)return;
   if(c.id==="q"){
     state.queenPending=true;
-    state.queenOwner=currentUser.uid;
+    state.queenOwner=shooter;
     state.queenCovered=false;
-  }else if(c.c===playerColor(currentUser.uid,state)){
+  }else if(c.c===playerColor(shooter,state)){
     state.turnOwnCoinPocketed=true;
-    if(state.queenPending && state.queenOwner===currentUser.uid){
+    if(state.queenPending && state.queenOwner===shooter){
       state.queenCovered=true;
       state.queenPending=false;
     }
@@ -643,8 +683,12 @@ async function finishTurn(){
  finishing=true;
 
  ensureGameMeta(state);
- const active=state.players||[];
- const oldPlayer=currentUser.uid;
+ const active=(state.players||[]).filter(Boolean);
+ const oldPlayer=currentUser?.uid;
+ if(!oldPlayer || !active.includes(oldPlayer)){
+   finishing=false;
+   return;
+ }
  if(checkWinner(oldPlayer)){
    resetStrikerForTurn(state);
    state.shotActive=false;
@@ -666,13 +710,26 @@ async function finishTurn(){
    state.turnOwnCoinPocketed=false;
  }
 
- // নিজের রঙের গুটি pocket করলে একই player-এর extra turn থাকবে;
- // miss/other case-এ opponent-এর turn হবে।
- if(active.length>1 && !state.turnOwnCoinPocketed){
-   const i=active.indexOf(oldPlayer);
-   if(i>=0)state.turn=active[(i+1)%active.length];
- } else {
+ // নিরাপত্তা: দুইজন যুক্ত না থাকলে ম্যাচের turn পাল্টানো/খেলা চালু হবে না।
+ if(active.length<2){
    state.turn=oldPlayer;
+   state.shotActive=false;
+   state.shotOwner=null;
+   state.turnOwnCoinPocketed=false;
+   resetStrikerForTurn(state);
+   await saveRoomState();
+   gameMsg("⏳ প্রতিপক্ষ যুক্ত হওয়ার অপেক্ষায় আছেন।");
+   finishing=false;
+   return;
+ }
+
+ // নিজের রঙের গুটি পকেটে ফেললে একই খেলোয়াড়ের অতিরিক্ত চাল থাকবে।
+ // গুটি না ফেললে বা ভুল চাল হলে পরের খেলোয়াড়ের turn হবে।
+ if(state.turnOwnCoinPocketed){
+   state.turn=oldPlayer;
+ } else {
+   const i=active.indexOf(oldPlayer);
+   state.turn=active[(i+1)%active.length];
  }
  resetStrikerForTurn(state);
  state.shotActive=false;
@@ -689,7 +746,7 @@ async function saveRoomState(){
  const payload={...state};
  delete payload.roomSyncVersion;
  state.roomSyncVersion=state.version;
- await update(ref(carromDb,"carromRooms/"+roomId),{state:payload});
+ await set(ref(carromDb,"carromRooms/"+roomId+"/state"),payload);
 }
 
 function dbError(e){
@@ -779,7 +836,7 @@ async function watchRoom(id){
       $("prizeText").textContent="৳"+Number(state?.winningAmount||0).toFixed(2);
       renderPlayers();
       renderClaimArea();
-      if(state?.winner)gameMsg(state.winner===currentUser.uid?"🏆 আপনি এই Free Play ম্যাচ জিতেছেন!":"🏆 প্রতিপক্ষ এই ম্যাচ জিতেছে।");
+      if(state?.winner)gameMsg(state.winner===currentUser.uid?"🏆 অভিনন্দন! আপনি এই Carrom ম্যাচ জিতেছেন।":"🏁 ম্যাচ শেষ — প্রতিপক্ষ বিজয়ী হয়েছেন।");
       else if(state?.queenPending && state?.queenOwner===currentUser.uid)
         gameMsg("👑 লাল Queen নিয়েছেন — নিজের "+playerColor(currentUser.uid,state)+" গুটি দিয়ে Cover করুন");
       else if(state?.queenPending)
@@ -795,90 +852,99 @@ async function watchRoom(id){
 
 async function joinRoom(){
   if(!currentUser)return gameMsg("GameNest User App-এ আগে Login করুন।");
+  let memberRef=null;
   try{
     const id=String($("matchCodeInput")?.value||$("packageCodeInput")?.value||"").trim().replace(/\s+/g,"").toUpperCase();
     if(!id)return gameMsg("Join করার জন্য Room ID লিখুন।");
-
-    // First check the live Carrom room path.
-    let roomRef=ref(carromDb,"carromRooms/"+id);
-    let snap=await get(roomRef);
-    let room=snap.exists()?(snap.val()||{}):null;
-
-    // Admin Panel currently stores approved room records under /rooms/{roomId}.
-    // Bridge a Carrom room from that path instead of reading gameId from null.
-    if(!room){
-      const legacySnap=await get(ref(db,"rooms/"+id));
-      if(!legacySnap.exists())return gameMsg("এই Room ID পাওয়া যায়নি। Admin Panel-এর approved Room ID দিন।");
-      const legacy=legacySnap.val()||{};
-      const gameName=String(legacy.gameName||legacy.name||"").toLowerCase();
-      const gameUrl=String(legacy.gameUrl||"").toLowerCase();
-      const isCarrom=/carrom|corrm|carom/.test(gameName+" "+gameUrl);
-      if(!isCarrom)return gameMsg("এই Room Carrom গেমের নয়। সঠিক Carrom Room ID দিন।");
-      if(!["active","ready","approved"].includes(String(legacy.status||"").toLowerCase()))
-        return gameMsg("এই Room এখনো Admin Approve করেননি।");
-      const bet=Number(legacy.betAmount||0);
-      const baseState=initialState(currentUser.uid);
-      baseState.gameId="carrom";
-      baseState.gameName="Carrom";
-      baseState.betAmount=bet;
-      baseState.winningAmount=Number(legacy.winningAmount||legacy.prizeAmount||bet*2);
-      baseState.packageCode=legacy.packageCode||"ADMIN";
-      baseState.purchaseId=legacy.purchaseId||"";
-      room={
-        roomId:id,gameId:"carrom",gameName:"Carrom",status:"active",
-        betAmount:bet,winningAmount:baseState.winningAmount,
-        password:legacy.password||"",packageCode:legacy.packageCode||"ADMIN",
-        purchaseId:legacy.purchaseId||"",allowedPlayers:legacy.allowedPlayers||null,
-        members:{[currentUser.uid]:{uid:currentUser.uid,gameId:"carrom",joinedAt:Date.now(),name:currentProfile?.name||"Player 1"}},
-        state:baseState
-      };
-      await set(roomRef,room);
-      snap=await get(roomRef);
-      room=snap.val()||room;
-    }
-
+    const roomRef=ref(carromDb,"carromRooms/"+id);
+    const snap=await get(roomRef);
+    const room=snap.exists()?(snap.val()||{}):null;
+    if(!room)return gameMsg("এই Carrom Room ID পাওয়া যায়নি। Admin Panel থেকে আগে Room তৈরি/Approve করুন।");
     if(room.status!=="ready" && room.status!=="active" && room.status!=="approved")
       return gameMsg("এই Match এখনো Admin Approve করেননি। Approve হওয়ার পর Code ব্যবহার করুন।");
 
-    // Never dereference a missing package or state object.
     if(!accessPackage)accessPackage={gameId:initialGameId||"carrom",betAmount:0,packageCode:packageCode||"FREE"};
     const roomName=String(room.gameName||room.name||"").toLowerCase();
     const roomUrl=String(room.gameUrl||"").toLowerCase();
     const isCarrom=/carrom|corrm|carom/.test(roomName+" "+roomUrl) || String(room.gameId||"").toLowerCase()==="carrom";
     if(!isCarrom)return gameMsg("এই Room Carrom গেমের নয়। Admin Panel-এ Game হিসেবে Carrom নির্বাচন করুন।");
 
+    const uid=currentUser.uid;
     const roomBet=Number(room.betAmount||0);
-    if(Array.isArray(room.allowedPlayers)&&room.allowedPlayers.length&&!room.allowedPlayers.includes(currentUser.uid))
+    if(Array.isArray(room.allowedPlayers)&&room.allowedPlayers.length&&!room.allowedPlayers.includes(uid))
       return gameMsg("এই Match-এ Admin অন্য User নির্বাচন করেছেন।");
+    const existingState=room.state&&typeof room.state==="object"?room.state:null;
+    const existingPlayers=Array.isArray(existingState?.players)?existingState.players.filter(Boolean):[];
+    if(existingState?.winner)return gameMsg("এই Match ইতোমধ্যে শেষ হয়েছে।");
+    if(existingPlayers.includes(uid)){
+      $("matchCodeInput") && ($("matchCodeInput").value=id);
+      return watchRoom(id);
+    }
+    if(existingPlayers.length>=2)return gameMsg("এই Match 2/2 পূর্ণ। অন্য Room ID ব্যবহার করুন।");
 
-    let st=room.state&&typeof room.state==="object"?room.state:null;
-    if(st?.winner)return gameMsg("এই Match ইতোমধ্যে শেষ হয়েছে।");
-    if(!st)st=initialState(currentUser.uid);
-    const players=Array.isArray(st.players)?st.players.filter(Boolean):[];
-    if(players.length>=2&&!players.includes(currentUser.uid))return gameMsg("এই Match 2/2 পূর্ণ।");
-    if(players.includes(currentUser.uid))return watchRoom(id);
+    // সদস্যের রেকর্ড আগে লিখি; Rules-এ state লেখার অনুমতি এই সদস্য রেকর্ডের ওপর নির্ভরশীল।
+    memberRef=ref(carromDb,"carromRooms/"+id+"/members/"+uid);
+    await set(memberRef,{uid,gameId:"carrom",packageCode:room.packageCode||"ADMIN",betAmount:roomBet,joinedAt:Date.now(),name:currentProfile?.name||currentUser.displayName||"Player"});
 
-    const memberRef=ref(carromDb,"carromRooms/"+id+"/members/"+currentUser.uid);
-    await set(memberRef,{uid:currentUser.uid,gameId:"carrom",packageCode:room.packageCode||"ADMIN",betAmount:roomBet,joinedAt:Date.now(),name:currentProfile?.name||"Player"});
-    const nextPlayers=[...players,currentUser.uid];
-    st.players=nextPlayers;
-    st.playerMap=st.playerMap||{};
-    st.playerMap[currentUser.uid]=true;
-    st.playerProfiles=st.playerProfiles||{};
-    st.playerProfiles[currentUser.uid]={name:currentProfile?.name||"Player",photo:currentProfile?.photo||currentProfile?.photoURL||""};
-    st.playerPackages=st.playerPackages||{};
-    st.playerPackages[currentUser.uid]={packageCode:room.packageCode||"ADMIN",purchaseId:room.purchaseId||"",betAmount:roomBet};
-    st.playerColors=st.playerColors||{};
-    if(nextPlayers.length===1)st.playerColors[currentUser.uid]="black";
-    else st.playerColors[currentUser.uid]="white";
-    st.gameId="carrom";st.gameName="Carrom";st.betAmount=roomBet;
-    st.winningAmount=Number(room.winningAmount||room.prizeAmount||roomBet*2);
-    st.turn=st.turn||nextPlayers[0];
-    await update(roomRef,{state:st,status:"active",gameId:"carrom",gameName:"Carrom"});
-    $("matchCodeInput").value=id;
+    // Transaction prevents two users joining at the same time from overwriting each other's player list.
+    const stateRef=ref(carromDb,"carromRooms/"+id+"/state");
+    const tx=await runTransaction(stateRef,current=>{
+      let st;
+      let players;
+      if(!current || typeof current!=="object"){
+        st=initialState(uid);
+        players=[]; // initialState contains a placeholder player; build the real join list atomically below
+      }else{
+        st=current;
+        players=Array.isArray(st.players)?st.players.filter(Boolean):[];
+      }
+      if(!Array.isArray(players))players=[];
+      if(st.winner)return;
+      if(players.includes(uid))return st;
+      if(players.length>=2)return;
+      const wasEmpty=players.length===0;
+      players=[...players,uid];
+      st.players=players;
+      st.playerMap=st.playerMap||{};
+      st.playerMap[uid]=true;
+      st.playerProfiles=st.playerProfiles||{};
+      st.playerProfiles[uid]={name:currentProfile?.name||currentUser.displayName||"Player",photo:currentProfile?.photo||currentProfile?.photoURL||"",mobile:currentProfile?.mobile||currentProfile?.phone||currentUser.phoneNumber||""};
+      st.playerPackages=st.playerPackages||{};
+      st.playerPackages[uid]={packageCode:room.packageCode||"ADMIN",purchaseId:room.purchaseId||"",betAmount:roomBet};
+      st.playerColors=st.playerColors||{};
+      for(let i=0;i<players.length;i++){
+        if(!st.playerColors[players[i]])st.playerColors[players[i]]=i===0?"black":"white";
+      }
+      st.playerColors[uid]=players.length===1?"black":"white";
+      st.gameId="carrom";st.gameName="Carrom";st.betAmount=roomBet;
+      st.winningAmount=Number(room.winningAmount||room.prizeAmount||roomBet*2);
+      st.packageCode=room.packageCode||"ADMIN";st.purchaseId=room.purchaseId||"";
+      if(wasEmpty){
+        // প্রথম জন কালো পাশে থাকবে; দ্বিতীয় জন যুক্ত হলে সাদা প্রথমে shot পাবে।
+        st.turn=uid;
+        st.striker={x:400,y:690,vx:0,vy:0};
+      }else if(players.length===2){
+        st.turn=uid; // second player is white, and white plays first
+        st.striker={x:400,y:110,vx:0,vy:0};
+        st.shotActive=false;st.shotOwner=null;st.turnOwnCoinPocketed=false;
+      }
+      st.version=Date.now();
+      return st;
+    });
+    if(!tx.committed){
+      try{await remove(memberRef)}catch(_){ }
+      const finalState=tx.snapshot?.val()||{};
+      if(finalState.winner)return gameMsg("এই Match ইতোমধ্যে শেষ হয়েছে।");
+      return gameMsg("এই Match 2/2 পূর্ণ। অন্য Room ID ব্যবহার করুন।");
+    }
+    $("matchCodeInput") && ($("matchCodeInput").value=id);
     await watchRoom(id);
-    gameMsg(nextPlayers.length>=2?"✅ দুই Player যুক্ত হয়েছেন।":"✅ Room-এ যুক্ত হয়েছেন। দ্বিতীয় Player-এর অপেক্ষা করুন।");
-  }catch(e){console.error(e);gameMsg(dbError(e));}
+    const joinedState=tx.snapshot?.val()||{};
+    gameMsg((joinedState.players||[]).length>=2?"✅ দুই Player যুক্ত হয়েছেন। সাদা গুটি দিয়ে প্রথম চাল শুরু হবে।":"✅ Room-এ যুক্ত হয়েছেন। দ্বিতীয় Player-এর অপেক্ষা করুন।");
+  }catch(e){
+    console.error(e);
+    gameMsg(dbError(e));
+  }
 }
 $("findMatchBtn").addEventListener("click",findMatch);
 $("cancelMatchBtn").addEventListener("click",cancelMatchSearch);
