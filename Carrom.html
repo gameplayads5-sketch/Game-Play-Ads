@@ -717,7 +717,7 @@ function pocketCoin(c){
   const shooter=state.shotOwner||currentUser?.uid;
   if(!shooter)return;
   if(c.id==="q"){
-    state.scores=state.scores||{}; state.scores[shooter]=Number(state.scores[shooter]||0)+15;
+    // Queen-এর ১৫ পয়েন্ট সঙ্গে সঙ্গে নয়—নিজের গুটি দিয়ে cover সফল হলেই যোগ হবে।
     showQueenPopup();
     state.queenPending=true;
     state.queenOwner=shooter;
@@ -730,6 +730,8 @@ function pocketCoin(c){
     if(state.queenPending && state.queenOwner===shooter){
       state.queenCovered=true;
       state.queenPending=false;
+      state.scores=state.scores||{};
+      state.scores[shooter]=Number(state.scores[shooter]||0)+15;
     }
   }
 }
