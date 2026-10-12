@@ -80,11 +80,13 @@ main{padding:14px}.screen{display:none}.screen.active{display:block}.hero{border
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updatePassword,reauthenticateWithCredential,EmailAuthProvider} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import {getDatabase,ref,set,get,push,onValue,update} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-import {getStorage,ref as storageRef,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
+import {getDatabase,ref,set,get,push,onValue,update,query,orderByChild,equalTo} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 const firebaseConfig={apiKey:"AIzaSyD2DBF_GTIkQfa6G_3gZLfZ5n0MaUEBQ48",authDomain:"gamenest-bd.firebaseapp.com",databaseURL:"https://gamenest-bd-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"gamenest-bd",storageBucket:"gamenest-bd.firebasestorage.app",messagingSenderId:"1020093526765",appId:"1:1020093526765:web:525b5f303e0f08d7b692e4"};
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app),storage=getStorage(app);
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app);
+// Cloudinary free-plan direct image upload. Configure these two values in your own Cloudinary account.
+const CLOUDINARY_CLOUD_NAME="mu60fehg";
+const CLOUDINARY_UPLOAD_PRESET="gamenest_winner_unsigned";
 // Telegram Bot Token is never read by the User App. Admin Panel will keep it private and use it for notifications.
 let me=null,meData={},settings={whatsapp:"",withdrawFeePercent:10,depositMethods:{}},listeners=[];
 const $=id=>document.getElementById(id),money=n=>"৳"+Number(n||0).toFixed(2);
@@ -171,18 +173,114 @@ function showResetAfterLogin(){
   setTimeout(()=>openResetPin(),450);
 }
 
-$("loginForm").onsubmit=async e=>{e.preventDefault();let m=$("loginMobile").value,p=$("loginPin").value;if(!pinOK(p))return toast("PIN ৬–১২ সংখ্যা হতে হবে");try{await signInWithEmailAndPassword(auth,email(m),p)}catch(x){toast("লগইন ব্যর্থ: "+friendly(x))}};
-$("signupForm").onsubmit=async e=>{e.preventDefault();let name=$("suName").value.trim(),mobile=$("suMobile").value.trim(),p=$("suPin").value,p2=$("suPin2").value,refMobile=$("suRef").value.trim();if(!name||!mobile)return toast("নাম ও মোবাইল দিন");if(!pinOK(p))return toast("PIN ৬–১২ সংখ্যা হতে হবে");if(p!==p2)return toast("দুই PIN মিলছে না");try{
-  // নতুন flow: Authentication আগে তৈরি হবে। Signup-এর আগে usersByMobile পড়া হবে না।
-  let mk=norm(mobile);
-  let c=await createUserWithEmailAndPassword(auth,email(mobile),p);
-  let now=Date.now();
-  await set(ref(db,"users/"+c.user.uid),{uid:c.user.uid,name,mobile,mobileKey:mk,referrerMobile:refMobile?norm(refMobile):"",balance:0,bonus:0,createdAt:now,status:"active"});
-  await set(ref(db,"usersByMobile/"+mk),c.user.uid);
-  if(refMobile)await push(ref(db,"referrals"),{referrerMobile:norm(refMobile),refereeUid:c.user.uid,refereeMobile:mobile,createdAt:now,status:"pending"});
-  toast("অ্যাকাউন্ট তৈরি হয়েছে");
-}catch(x){toast("সাইন আপ ব্যর্থ: "+friendly(x))}};
+function showAuthResult(title,message,kind="success"){
+  const icon=kind==="success"?"✅":kind==="warning"?"⚠️":kind==="error"?"❌":"ℹ️";
+  $("modalBody").innerHTML=`<h3>${icon} ${esc(title)}</h3><div class="notice">${esc(message)}</div><button class="primary" onclick="closeModal()">ঠিক আছে</button>`;
+  $("modal").classList.remove("hidden");
+}
+function setAuthBusy(formId,busy,label){
+  const form=$(formId); if(!form)return;
+  const btn=form.querySelector('button[type="submit"],button:not([type])');
+  if(!btn)return;
+  if(busy){btn.dataset.oldText=btn.textContent;btn.disabled=true;btn.textContent=label||"অপেক্ষা করুন…";}
+  else{btn.disabled=false;if(btn.dataset.oldText){btn.textContent=btn.dataset.oldText;delete btn.dataset.oldText;}}
+}
 
+$("loginForm").onsubmit=async e=>{
+  e.preventDefault();
+  const m=$("loginMobile").value.trim(),p=$("loginPin").value;
+  if(!pinOK(p))return toast("PIN ৬–১২ সংখ্যা হতে হবে");
+  setAuthBusy("loginForm",true,"লগইন হচ্ছে…");
+  try{
+    const cred=await signInWithEmailAndPassword(auth,email(m),p);
+    const snap=await get(ref(db,"users/"+cred.user.uid));
+    if(!snap.exists()){
+      await signOut(auth);
+      showAuth("signup");$("suMobile").value=m;$("suPin").value=p;$("suPin2").value=p;
+      showAuthResult("প্রোফাইল অসম্পূর্ণ","এই নম্বরের Auth অ্যাকাউন্ট আছে, কিন্তু প্রোফাইল নেই। একই নম্বর ও PIN দিয়ে সাইন আপ ফর্ম পূরণ করে প্রোফাইল পুনরুদ্ধার করুন।","warning");
+      return;
+    }
+    const d=snap.val()||{};
+    if(!d.mobile){
+      await signOut(auth);
+      showAuth("signup");$("suMobile").value=m;$("suPin").value=p;$("suPin2").value=p;$("suName").value=d.name||"";
+      showAuthResult("প্রোফাইল অসম্পূর্ণ","এই অ্যাকাউন্টে মোবাইল নম্বর সংরক্ষিত নেই। একই নম্বর ও PIN দিয়ে সাইন আপ ফর্মে নামসহ তথ্য পূরণ করে প্রোফাইল ঠিক করুন।","warning");
+      return;
+    }
+    toast("লগইন সফল হয়েছে");
+  }catch(x){console.error("Login failed",x);toast("লগইন ব্যর্থ: "+friendly(x));}
+  finally{setAuthBusy("loginForm",false);}
+};
+
+async function writeUserProfile(uid,name,mobile,refMobile,now){
+  const mk=norm(mobile),base="users/"+uid;
+  // Save the profile fields one by one to match the existing per-child Firebase Rules.
+  const fields={uid,name,mobile: String(mobile).trim(),mobileKey:mk,referrerMobile:refMobile?norm(refMobile):"",bonus:0,createdAt:now,status:"active"};
+  for(const [k,v] of Object.entries(fields)){
+    try{await set(ref(db,base+"/"+k),v);}
+    catch(err){console.error("Profile field write failed:",k,err);throw new Error("Firebase অনুমতি/সংরক্ষণ সমস্যা: users/"+uid+"/"+k+" — "+(err?.code||err?.message||"Permission denied"));}
+  }
+  // Check the stored values before reporting success.
+  let verify;
+  try{verify=await get(ref(db,base));}
+  catch(err){throw new Error("প্রোফাইল যাচাই করা যায়নি: "+(err?.code||err?.message||"Permission denied"));}
+  const saved=verify.val()||{};
+  if(saved.uid!==uid||String(saved.mobile||"").trim()!==String(mobile).trim()||saved.name!==name){
+    throw new Error("প্রোফাইল সংরক্ষণের পর যাচাই মেলেনি। users/"+uid+"-এ mobile/name পরীক্ষা করুন।");
+  }
+  // Mobile index is secondary. Some existing Rules deny reading an absent index,
+  // so do not mark the whole signup as failed after the profile itself was saved.
+  try{
+    const ix=await get(ref(db,"usersByMobile/"+mk));
+    if(!ix.exists())await set(ref(db,"usersByMobile/"+mk),{uid,mobile:mk});
+    else if(ix.child("uid").val()!==uid)console.warn("Mobile index belongs to another UID; admin review needed.");
+  }catch(err){
+    console.warn("Mobile index could not be checked/saved; profile was saved. Review usersByMobile Rules.",err);
+  }
+  if(refMobile){
+    try{await push(ref(db,"referrals"),{referrerMobile:norm(refMobile),refereeUid:uid,refereeMobile:String(mobile).trim(),createdAt:now,status:"pending"});}
+    catch(err){console.warn("Optional referral record was not saved",err);}
+  }
+}
+
+$("signupForm").onsubmit=async e=>{
+  e.preventDefault();
+  const name=$("suName").value.trim(),mobile=$("suMobile").value.trim(),p=$("suPin").value,p2=$("suPin2").value,refMobile=$("suRef").value.trim();
+  if(!name||!mobile)return toast("নাম ও মোবাইল দিন");
+  if(!pinOK(p))return toast("PIN ৬–১২ সংখ্যা হতে হবে");
+  if(p!==p2)return toast("দুই PIN মিলছে না");
+  if(norm(mobile).length<11)return toast("সঠিক মোবাইল নম্বর দিন");
+  setAuthBusy("signupForm",true,"অ্যাকাউন্ট তৈরি হচ্ছে…");
+  let cred=null,created=false;
+  try{
+    try{cred=await createUserWithEmailAndPassword(auth,email(mobile),p);created=true;}
+    catch(createErr){
+      if(createErr.code!=="auth/email-already-in-use")throw createErr;
+      // Existing Auth user: same PIN proves access; repair only an incomplete profile.
+      cred=await signInWithEmailAndPassword(auth,email(mobile),p);
+      const existing=await get(ref(db,"users/"+cred.user.uid));
+      const old=existing.val()||{};
+      if(old.mobile && String(norm(old.mobile))!==String(norm(mobile))){
+        await signOut(auth);
+        showAuthResult("এই অ্যাকাউন্ট আগে থেকেই আছে","এই লগইন অ্যাকাউন্টে অন্য মোবাইল নম্বর সংরক্ষিত আছে। নতুন অ্যাকাউন্ট তৈরি না করে সঠিক নম্বর দিয়ে লগইন করুন।","warning");
+        return;
+      }
+      if(old.mobile && old.name && old.uid===cred.user.uid){
+        await signOut(auth);
+        showAuthResult("অ্যাকাউন্ট আগে থেকেই আছে","এই মোবাইল নম্বর দিয়ে অ্যাকাউন্ট আগে থেকেই সম্পূর্ণ তৈরি আছে। লগইন ট্যাব থেকে প্রবেশ করুন।","info");
+        return;
+      }
+    }
+    await writeUserProfile(cred.user.uid,name,mobile,refMobile,Date.now());
+    showAuthResult(" সাইন আপ সফল হয়েছে","আপনার GameNest BD অ্যাকাউন্ট প্রস্তুত। এখন অ্যাপ ব্যবহার করতে পারবেন।","success");
+  }catch(x){
+    console.error("Signup/profile repair failed",x);
+    try{if(auth.currentUser)await signOut(auth);}catch(signoutErr){console.warn("Could not sign out after incomplete signup",signoutErr);}
+    // Show the real failure instead of a malformed/false success message.
+    const msg = (typeof friendly === "function") ? friendly(x) : (x?.message || "ইন্টারনেট বা Firebase অনুমতির সমস্যা");
+    showAuthResult("❌ সাইন আপ সম্পূর্ণ হয়নি", String(msg) + "। তথ্য সংরক্ষণ হয়নি হলে আবার চেষ্টা করুন; সমস্যা থাকলে এই বার্তার স্ক্রিনশট Admin-কে দিন।", "error");
+  }finally{setAuthBusy("signupForm",false);}
+};
 try{
   let incoming=new URLSearchParams(location.search).get("ref");
   if(incoming && $("suRef")) $("suRef").value=incoming.replace(/\D/g,"");
@@ -245,8 +343,8 @@ window.buyPackage=async id=>{
 };
 
 function renderMyGames(d){
-  let a=Object.entries(d).map(([id,v])=>({id,...v})).filter(x=>x.status==="active"||x.status==="approved");
-  let h=a.length?a.map(x=>{
+  let a=Object.entries(d).map(([id,v])=>({id,...v})).filter(x=>x.status==="active"||x.status==="approved").sort((x,y)=>(Number(y.createdAt||y.approvedAt||y.updatedAt||0)-Number(x.createdAt||x.approvedAt||x.updatedAt||0))).slice(0,10);
+  let h=a.length?`<div class="muted" style="margin-bottom:8px">সর্বশেষ ১০টি Active/Approved প্যাকেজ দেখানো হচ্ছে। পুরোনো হিসাব Firebase/Admin থেকে মুছে ফেলা হবে না।</div>`+a.map(x=>{
     let roomId=String(x.roomId||x.roomCode||"").trim();
     let url=safeGameUrl(x.gameUrl||x.link||"");
     const bet=Number(x.betAmount||x.price||0);
@@ -270,7 +368,7 @@ function renderMyGames(d){
       <div class="muted">প্যাকেজ: ${money(x.price||0)} • Match Entry: ${money(bet)} • দুইজনের মোট: ${money(prize)}</div>
       <div class="code">🎟️ Package Code: ${esc(x.packageCode||"Admin এখনো Code দেননি")}</div>
       <div class="code">🆔 Match / Room Code: ${esc(roomId||"Admin এখনো Room দেননি")}</div>
-      <div class="notice" style="margin-top:8px">🔒 Entry Amount এই Package Code থেকেই নির্ধারিত। User নিজে ১০০৳/অন্য কোনো Amount লিখে পরিবর্তন করতে পারবে না।<br>🏆 দুইজন একই Entry হলে Winner-এর Game Prize = ${money(prize)}। Game থেকে কোনো ২০% commission কাটা হবে না।</div>
+      <div class="notice" style="margin-top:8px">🎮 এই রুম কোডের মাধ্যমে গেমে জয়েন করুন। দ্বিতীয় প্লেয়ারের জন্য গেমের ভিতরে অপেক্ষা করুন। কিছু সময়ের মধ্যেই আপনাদের ম্যাচ শুরু হয়ে যাবে।</div>
       <div class="minirow">
         <button onclick="navigator.clipboard?.writeText(${JSON.stringify(x.packageCode||"")});toast('Package Code কপি হয়েছে')">📋 Copy Code</button>
         <button onclick="navigator.clipboard?.writeText(${JSON.stringify(roomId)});toast('Match Code কপি হয়েছে')">🆔 Copy Match</button>
@@ -314,29 +412,51 @@ window.openIdentityVerification=async()=>{
   const claims=snap?.exists()?snap.val():{};
   const existing=Object.values(claims||{}).find(c=>c&&c.uid===me.uid&&["pending","approved"].includes(String(c.status||"").toLowerCase()));
   if(existing)return toast(existing.status==="approved"?"এই জয়ের দাবি ইতোমধ্যে অনুমোদিত হয়েছে":"আপনার একটি জয়ের দাবি যাচাইয়ের অপেক্ষায় আছে");
-  $("modalBody").innerHTML=`<h3>🏆 ম্যাচ উইনার যাচাই</h3><div class="notice">পুরস্কারের টাকা পেতে আপনার প্যাকেজ কোড এবং ম্যাচ জয়ের স্ক্রিনশট এখানে জমা দিন। অ্যাডমিন তথ্য যাচাই করে অনুমোদন দিলে পুরস্কারের টাকা আপনার অ্যাকাউন্টে যোগ করা হবে।</div><form id="identityForm" class="form"><div class="field"><label>প্যাকেজ কোড</label><input id="idNumber" autocomplete="off" autocapitalize="characters" required placeholder="আপনার প্যাকেজ কোড"></div><div class="field"><label>ম্যাচ জয়ের স্ক্রিনশট</label><input id="winnerShot" type="file" accept="image/*" required></div><button class="primary">📩 প্যাকেজ কোড ও স্ক্রিনশট জমা দিন</button></form>`;
+  $("modalBody").innerHTML=`<h3>🏆 ম্যাচ উইনার যাচাই</h3><div class="notice">আপনার গেমের <b>Package Code</b> দিন—Room/Match Code নয়। এরপর জয়ের স্ক্রিনশট নির্বাচন করে জমা দিন। ছবিটি অ্যাপ থেকেই Firebase-এ আপলোড হবে; আলাদা লিংক কপি করতে হবে না।</div><form id="identityForm" class="form"><div class="field"><label>Package Code (Room Code নয়)</label><input id="idNumber" autocomplete="off" autocapitalize="characters" required placeholder="যেমন PK3MDY0546"></div><div class="field"><label>ম্যাচ জয়ের স্ক্রিনশট</label><input id="winnerShotFile" type="file" accept="image/*" required></div><p class="muted">শুধু ছবি দিন (PNG/JPG/WebP), সর্বোচ্চ 5 MB।</p><button class="primary" type="submit">📩 প্যাকেজ কোড ও স্ক্রিনশট জমা দিন</button></form>`
   $("modal").classList.remove("hidden");
   $("identityForm").onsubmit=async e=>{
     e.preventDefault();
-    const code=$("idNumber").value.trim().toUpperCase().replace(/\\s+/g,"");
-    const file=$("winnerShot").files?.[0];
+    const submitForm=e.currentTarget;
+    const submitButton=submitForm.querySelector('button[type="submit"],button:not([type])');
+    const originalButtonText=submitButton?.textContent||"📩 প্যাকেজ কোড ও স্ক্রিনশট জমা দিন";
+    const code=$("idNumber").value.trim().toUpperCase().replace(/\s+/g,"");
+    const screenshotFile=$("winnerShotFile").files?.[0];
     if(!code)return toast("আপনার প্যাকেজ কোড লিখুন");
-    if(!file)return toast("ম্যাচ জয়ের স্ক্রিনশট নির্বাচন করুন");
-    if(!file.type.startsWith("image/")||file.size>5*1024*1024)return toast("৫ MB-এর মধ্যে একটি ছবি নির্বাচন করুন");
+    if(!screenshotFile)return toast("ম্যাচ জয়ের স্ক্রিনশট নির্বাচন করুন");
+    if(!String(screenshotFile.type||"").startsWith("image/"))return toast("শুধু ছবি ফাইল আপলোড করা যাবে");
+    if(screenshotFile.size>5*1024*1024)return toast("ছবির সাইজ 5 MB-এর কম হতে হবে");
+    if(submitButton){submitButton.disabled=true;submitButton.textContent="⏳ জমা হচ্ছে…";submitButton.style.opacity=".75";}
+    let submitStage="প্যাকেজ কোড যাচাই";
+    const showStage=(label)=>{if(submitButton)submitButton.textContent="⏳ "+label+"…";};
     try{
+      showStage("প্যাকেজ কোড যাচাই");
       const tokenSnap=await get(ref(db,"gameTokens/"+code));
-      if(!tokenSnap.exists())return toast("এই প্যাকেজ কোড পাওয়া যায়নি");
+      if(!tokenSnap.exists())return toast("সঠিক Package Code দিন (যেমন PK3MDY0546)। Room/Match Code এখানে দেবেন না।");
       const token=tokenSnap.val()||{};
       if(token.uid!==me.uid)return toast("এই প্যাকেজ কোড আপনার অ্যাকাউন্টের নয়");
       const claimRef=push(ref(db,"winningClaims"));
       const claimId=claimRef.key;
-      const imageRef=storageRef(storage,`winningClaims/${me.uid}/${claimId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`);
-      await uploadBytes(imageRef,file,{contentType:file.type});
-      const screenshotUrl=await getDownloadURL(imageRef);
+      if(!CLOUDINARY_CLOUD_NAME||CLOUDINARY_CLOUD_NAME==="YOUR_CLOUDINARY_CLOUD_NAME"||!CLOUDINARY_UPLOAD_PRESET||CLOUDINARY_UPLOAD_PRESET==="YOUR_UNSIGNED_UPLOAD_PRESET"){
+        return toast("❌ ছবি আপলোড চালুর আগে Cloudinary Cloud Name ও Upload Preset সেট করতে হবে।");
+      }
+      const uploadForm=new FormData();
+      uploadForm.append("file",screenshotFile);
+      uploadForm.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
+      uploadForm.append("folder","gamenest-winner-claims");
+      submitStage="Cloudinary-তে স্ক্রিনশট আপলোড";showStage(submitStage);
+      const cloudResp=await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(CLOUDINARY_CLOUD_NAME)}/image/upload`,{method:"POST",body:uploadForm});
+      const cloudData=await cloudResp.json().catch(()=>({}));
+      if(!cloudResp.ok||!cloudData.secure_url)throw new Error(cloudData.error?.message||"Cloudinary upload ব্যর্থ হয়েছে");
+      const screenshotUrl=cloudData.secure_url;
+      const imagePath=cloudData.public_id||"";
       const matchId=String(token.matchId||token.roomId||token.roomCode||"");
-      await set(claimRef,{claimId,uid:me.uid,userId:me.uid,winnerUid:me.uid,name:meData.name||"",userName:meData.name||"",mobile:meData.mobile||"",packageCode:code,purchaseId:token.purchaseId||"",gameId:token.gameId||"",gameName:token.gameName||"",matchId,matchCode:matchId,roomId:matchId,opponentUid:token.opponentUid||"",playerUids:token.playerUids||[],screenshot:screenshotUrl,screenshotUrl,betAmount:Number(token.entryAmount||token.betAmount||token.amount||0),winningAmount:Number(token.winningAmount||Number(token.entryAmount||token.betAmount||token.amount||0)*2),status:"pending",verificationScore:null,createdAt:Date.now(),credited:false});
-      closeModal();toast("✅ জয়ের দাবি জমা হয়েছে। অ্যাডমিন যাচাই করবেন।");renderIdentityStatus();
-    }catch(err){console.error(err);toast("❌ জমা দেওয়া যায়নি: "+(err.message||err));}
+      const claimData={claimId,uid:me.uid,userId:me.uid,winnerUid:me.uid,name:meData.name||"",userName:meData.name||"",mobile:meData.mobile||"",packageCode:code,purchaseId:token.purchaseId||"",gameId:token.gameId||"",gameName:token.gameName||"",matchId,matchCode:matchId,roomId:matchId,opponentUid:token.opponentUid||"",playerUids:token.playerUids||[],betAmount:Number(token.entryAmount||token.betAmount||token.amount||0),winningAmount:Number(token.winningAmount||Number(token.entryAmount||token.betAmount||token.amount||0)*2),status:"pending",verificationScore:null,createdAt:Date.now(),credited:false,screenshot:screenshotUrl,screenshotUrl,screenshotPath:imagePath,storageProvider:"cloudinary"};
+      submitStage="Firebase Realtime Database-এ Claim জমা";showStage(submitStage);
+      await set(claimRef,claimData);
+      showStage("জমা সম্পন্ন");
+      closeModal();toast("✅ জয়ের দাবি জমা হয়েছে। Admin Panel-এ রিয়েল-টাইমে দেখা যাবে।");renderIdentityStatus();
+    }catch(err){console.error("Winner claim failed at",submitStage,err);const msg=String(err?.message||err);if(/permission_denied|permission denied|unauthorized/i.test(msg)){if(submitStage.includes("Cloudinary"))toast("❌ Cloudinary upload অনুমতি নেই। Upload Preset-এর unsigned সেটিংস যাচাই করুন।");else if(submitStage.includes("Realtime Database"))toast("❌ Claim জমা দেওয়ার অনুমতি নেই। Realtime Database Rules যাচাই করুন।");else toast("❌ Package Code যাচাইয়ে অনুমতি নেই। Database Rules-এ gameTokens পড়ার অনুমতি পরীক্ষা করুন।");}else if(/object not found|does not exist/i.test(msg))toast("❌ স্ক্রিনশট আপলোডের ফাইল পাওয়া যায়নি। আবার ছবি নির্বাচন করুন।");else toast("❌ "+submitStage+" ব্যর্থ: "+msg);
+    }finally{if(submitButton){submitButton.disabled=false;submitButton.textContent=originalButtonText;submitButton.style.opacity="";}}
   };
 };
 async function renderIdentityStatus(){
@@ -595,8 +715,8 @@ window.openNotices=()=>{
   $("modalBody").innerHTML=`<h3>📢 সব নোটিশ</h3>`+(a.length?a.map(x=>`<div class="notice"><b>${esc(x.title||"নোটিশ")}</b><br>${esc(x.text||"")}</div>`).join(""):'<div class="empty">কোনো নতুন নোটিশ নেই।</div>');
   $("modal").classList.remove("hidden");
 };
-async function loadMoneyHistory(){let [d,w]=await Promise.all([get(ref(db,"depositRequests")),get(ref(db,"withdrawRequests"))]);let a=[...Object.values(d.val()||{}),...Object.values(w.val()||{})].filter(x=>x.uid===me.uid).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));$("historyList").innerHTML=a.length?a.slice(0,50).map(x=>`<div class="row"><div class="left"><b>${esc(x.method||"লেনদেন")} • ${money(x.amount)}</b><small>${new Date(x.createdAt||0).toLocaleString("bn-BD")}</small></div><span class="status ${esc(x.status)}">${esc(x.status||"pending")}</span></div>`).join(""):'<div class="empty">কোনো লেনদেন নেই।</div>'}
-window.historyTab=async t=>{document.querySelectorAll("#history .tabs button").forEach((b,i)=>b.classList.toggle("active",t==="money"?i===0:i===1));if(t==="money")return loadMoneyHistory();let s=await get(ref(db,"gameHistory/"+me.uid)),a=Object.values(s.val()||{}).sort((x,y)=>(y.createdAt||0)-(x.createdAt||0));$("historyList").innerHTML=a.length?a.map(x=>`<div class="row"><div class="left"><b>${esc(x.gameName||"Game")}</b><small>${esc(x.result||"")} • ${new Date(x.createdAt||0).toLocaleString("bn-BD")}</small></div><span class="status">${esc(x.status||"completed")}</span></div>`).join(""):'<div class="empty">কোনো গেম হিস্টরি নেই।</div>'}
+async function loadMoneyHistory(){try{if(!me?.uid)throw new Error("লগইন তথ্য পাওয়া যায়নি");const [d,w]=await Promise.all([get(query(ref(db,"depositRequests"),orderByChild("uid"),equalTo(me.uid))),get(query(ref(db,"withdrawRequests"),orderByChild("uid"),equalTo(me.uid)))]);let a=[...Object.entries(d.val()||{}).map(([id,x])=>({id,...x,_kind:"deposit"})),...Object.entries(w.val()||{}).map(([id,x])=>({id,...x,_kind:"withdraw"}))].sort((a,b)=>(Number(b.createdAt||0)-Number(a.createdAt||0)));const statusLabel={pending:"অপেক্ষমাণ",approved:"অনুমোদিত",completed:"সম্পন্ন",rejected:"বাতিল",processing:"প্রক্রিয়াধীন",paid:"পরিশোধিত",failed:"ব্যর্থ"};$("historyList").innerHTML=a.length?a.slice(0,50).map(x=>{const dep=x._kind==="deposit";const label=dep?"💰 ডিপোজিট":"💸 উইথড্র";const status=String(x.status||"pending").toLowerCase();return `<div class="row"><div class="left"><b>${label} • ${money(x.amount)}</b><small>মাধ্যম: ${esc(x.method||"—")} • ${new Date(Number(x.createdAt||0)).toLocaleString("bn-BD")}${x.transactionId||x.trxId?`<br>Transaction ID: ${esc(x.transactionId||x.trxId)}`:""}${!dep&&(x.receiveAmount!=null||x.netAmount!=null)?`<br>প্রাপ্য: ${money(x.receiveAmount??x.netAmount)}`:""}</small></div><span class="status ${esc(status)}">${esc(statusLabel[status]||x.status||"অপেক্ষমাণ")}</span></div>`}).join(""):'<div class="empty">এখনো কোনো ডিপোজিট বা উইথড্র রেকর্ড নেই।</div>';}catch(err){console.error("Transaction history read failed:",err);$("historyList").innerHTML='<div class="empty">লেনদেনের হিস্টোরি লোড হয়নি। Firebase Rules ও ইন্টারনেট সংযোগ পরীক্ষা করুন।</div>';}}
+window.historyTab=async t=>{document.querySelectorAll("#history .tabs button").forEach((b,i)=>b.classList.toggle("active",t==="money"?i===0:i===1));if(t==="money")return loadMoneyHistory();try{if(!me?.uid)throw new Error("লগইন তথ্য পাওয়া যায়নি");let s=await get(ref(db,"gameHistory/"+me.uid)),a=Object.entries(s.val()||{}).map(([id,x])=>({id,...x})).sort((x,y)=>(Number(y.createdAt||0)-Number(x.createdAt||0)));$("historyList").innerHTML=a.length?a.slice(0,50).map(x=>{const dt=x.createdAt?new Date(Number(x.createdAt)).toLocaleString("bn-BD"):"সময় নেই";return `<div class="row"><div class="left"><b>🎮 ${esc(x.gameName||x.game||"Carrom Game")}</b><small>ফলাফল: ${esc(x.result||x.winnerName||"রেকর্ড করা হয়নি")} • ${dt}${x.matchCode||x.roomId?`<br>Match/Room: ${esc(x.matchCode||x.roomId)}`:""}${x.packageCode?`<br>Package Code: ${esc(x.packageCode)}`:""}${x.winningAmount!=null?`<br>পুরস্কার: ${money(x.winningAmount)}`:""}</small></div><span class="status">${esc(x.status||"completed")}</span></div>`}).join(""):'<div class="empty">এখনো কোনো গেম হিস্টরি নেই। ম্যাচ শেষ হলে গেম থেকে gameHistory-তে রেকর্ড লেখা থাকতে হবে।</div>'}catch(err){console.error("Game history read failed:",err);$("historyList").innerHTML='<div class="empty">গেম হিস্টোরি লোড হয়নি। Firebase Rules ও ইন্টারনেট সংযোগ পরীক্ষা করুন।</div>'}}
 function renderProfile(){$("profileData").innerHTML=`<div class="row"><div class="left"><b>নাম</b></div><span>${esc(meData.name||"")}</span></div><div class="row"><div class="left"><b>মোবাইল</b></div><span>${esc(meData.mobile||"")}</span></div><div class="row"><div class="left"><b>ব্যালেন্স</b></div><span>${money(meData.balance)}</span></div>`}
 window.logout=()=>signOut(auth);
 </script>
