@@ -181,7 +181,7 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-
 </head>
 <body>
 <div id="app">
-  <div id="queenPopup" role="status" aria-live="polite">👑 ওয়াও! আপনি Queen পকেটে ফেলেছেন! +১৫ পয়েন্ট</div>
+  <div id="queenPopup" role="status" aria-live="polite">👑 Queen পকেটে পড়েছে! পরবর্তী শটে নিজের গুটি দিয়ে Cover করুন</div>
   <div id="game">
     <div class="top">
       <div><div class="topTitle">👑 GameNest BD • Carrom</div><div class="topSub">Online Match • Room ID দিয়ে Join করুন</div></div>
@@ -355,6 +355,7 @@ function initialState(p1){
    queenPending:false,
    queenOwner:null,
    queenCovered:false,
+   queenShotCount:null,
    turnOwnCoinPocketed:false,
    shotCount:0,
    shotOwner:null,
@@ -381,6 +382,7 @@ function ensureGameMeta(st){
   if(st.queenPending===undefined)st.queenPending=false;
   if(st.queenOwner===undefined)st.queenOwner=null;
   if(st.queenCovered===undefined)st.queenCovered=false;
+  if(st.queenShotCount===undefined)st.queenShotCount=null;
   if(st.turnOwnCoinPocketed===undefined)st.turnOwnCoinPocketed=false;
   if(st.shotOwner===undefined)st.shotOwner=null;
   if(st.shotActive===undefined)st.shotActive=false;
@@ -408,6 +410,7 @@ function returnQueenToCenter(st){
   st.queenPending=false;
   st.queenOwner=null;
   st.queenCovered=false;
+  st.queenShotCount=null;
 }
 
 function renderScoreSummary(){
@@ -693,26 +696,31 @@ function pocketCoin(c){
   const shooter=state.shotOwner||currentUser?.uid;
   if(!shooter)return;
   if(c.id==="q"){
-    // Queen-এর ১৫ পয়েন্ট সঙ্গে সঙ্গে নয়—নিজের গুটি দিয়ে cover সফল হলেই যোগ হবে।
+    // কুইন নেওয়ার একই শটে অন্য গুটি পড়লেও সেটি কভার নয়। পরবর্তী শটেই কভার হবে।
     showQueenPopup();
     state.queenPending=true;
     state.queenOwner=shooter;
     state.queenCovered=false;
+    state.queenShotCount=Number(state.shotCount||0)+1;
   }else if(c.c===playerColor(shooter,state)){
     state.pocketCounts=state.pocketCounts||{};
     state.pocketCounts[shooter]=Number(state.pocketCounts[shooter]||0)+1;
-    state.scores=state.scores||{}; state.scores[shooter]=Number(state.scores[shooter]||0)+5;
+    state.scores=state.scores||{};
+    state.scores[shooter]=Number(state.scores[shooter]||0)+5;
     state.turnOwnCoinPocketed=true;
-    if(state.queenPending && state.queenOwner===shooter){
+    // কেবল কুইন নেওয়ার পরের শটে নিজের রঙের গুটি পড়লেই কভার হবে।
+    const currentShotNumber=Number(state.shotCount||0)+1;
+    if(state.queenPending && state.queenOwner===shooter &&
+       Number(state.queenShotCount||0)>0 && currentShotNumber>Number(state.queenShotCount)){
       state.queenCovered=true;
-      playGameSound("queen");
       state.queenPending=false;
-      state.scores=state.scores||{};
+      state.queenOwner=null;
+      state.queenShotCount=null;
+      playGameSound("queen");
       state.scores[shooter]=Number(state.scores[shooter]||0)+15;
     }
   }
 }
-
 function anyPieceMoving(){
   if(Math.abs(state.striker.vx)>0.05||Math.abs(state.striker.vy)>0.05)return true;
   return (state.coins||[]).some(c=>!c.in && (Math.abs(c.vx)>0.05||Math.abs(c.vy)>0.05));
@@ -804,6 +812,24 @@ async function finishTurn(){
    finishing=false;
    return;
  }
+
+ // এই শটটি সম্পূর্ণ হলো। Queen যে শটে নেওয়া হয়েছিল তার নম্বর দিয়ে পরবর্তী শট আলাদা করা হয়।
+ state.shotCount=Number(state.shotCount||0)+1;
+ const queenNeedsNextShot=!!(state.queenPending && state.queenOwner===oldPlayer &&
+   !state.queenCovered && Number(state.queenShotCount||0)===Number(state.shotCount));
+
+ // কুইন নেওয়ার শট শেষ হলে একই খেলোয়াড়কে পরবর্তী শটের সুযোগ দিন।
+ // পরবর্তী শটেও কভার না হলে কুইন মাঝখানে ফিরবে।
+ if(state.queenPending && state.queenOwner===oldPlayer && !state.queenCovered && !queenNeedsNextShot){
+   returnQueenToCenter(state);
+ }else if(state.queenCovered){
+   state.queenPending=false;
+   state.queenOwner=null;
+   state.queenCovered=false;
+   state.queenShotCount=null;
+ }
+
+ // কভার সফল হলে, অথবা ব্যর্থতার পর কুইন মাঝখানে ফিরলে, বিজয় যাচাই করুন।
  if(checkWinner(oldPlayer)){
    resetStrikerForTurn(state);
    state.shotActive=false;
@@ -814,22 +840,12 @@ async function finishTurn(){
    finishing=false;
    return;
  }
- state.shotCount=Number(state.shotCount||0)+1;
- // ১২০টি সম্পূর্ণ চালেও কেউ না জিতলে ম্যাচ ড্র হবে, যাতে খেলা অনির্দিষ্টকাল না চলে।
+
+ // ১২০টি সম্পূর্ণ শটেও কেউ না জিতলে ম্যাচ ড্র হবে।
  if(state.shotCount>=120){
    state.winner="draw";state.draw=true;state.endedAt=Date.now();state.winningAmount=0;
    state.shotActive=false;state.shotOwner=null;await saveRoomState();renderClaimArea();
    gameMsg("⏱️ ১২০টি চাল শেষ—ম্যাচ ড্র হয়েছে, পুরস্কার দাবি করা যাবে না।");finishing=false;return;
- }
-
- // Queen নিলে নিজের colour-এর গুটি দিয়ে cover না করলে Queen মাঝখানে ফেরত।
- if(state.queenPending && state.queenOwner===oldPlayer && !state.queenCovered){
-   returnQueenToCenter(state);
- }else if(state.queenCovered){
-   state.queenPending=false;
-   state.queenOwner=null;
-   state.queenCovered=false;
-   state.turnOwnCoinPocketed=false;
  }
 
  // নিরাপত্তা: দুইজন যুক্ত না থাকলে ম্যাচের turn পাল্টানো/খেলা চালু হবে না।
@@ -845,9 +861,8 @@ async function finishTurn(){
    return;
  }
 
- // নিজের রঙের গুটি পকেটে ফেললে একই খেলোয়াড়ের অতিরিক্ত চাল থাকবে।
- // গুটি না ফেললে বা ভুল চাল হলে পরের খেলোয়াড়ের turn হবে।
- if(state.turnOwnCoinPocketed){
+ // নিজের গুটি পকেটে পড়লে অতিরিক্ত শট; কুইন এই শটে নেওয়া হলে কভার করার জন্যও পরবর্তী শট থাকবে।
+ if(state.turnOwnCoinPocketed || queenNeedsNextShot){
    state.turn=oldPlayer;
  } else {
    const i=active.indexOf(oldPlayer);
@@ -862,7 +877,6 @@ async function finishTurn(){
  await saveRoomState();
  finishing=false;
 }
-
 async function saveRoomState(){
  if(!roomId||!currentUser)return;
  state.version=Date.now();
@@ -938,7 +952,7 @@ async function expireTurnIfNeeded(){
         const coins=Array.isArray(current.coins)?current.coins:[];
         const queen=coins.find(c=>c&&c.id==="q");
         if(queen){queen.in=false;queen.x=400;queen.y=400;queen.vx=0;queen.vy=0;}
-        current.queenPending=false;current.queenOwner=null;current.queenCovered=false;
+        current.queenPending=false;current.queenOwner=null;current.queenCovered=false;current.queenShotCount=null;
       }
       current.turn=next;
       current.turnStartedAt=Date.now();
@@ -1021,9 +1035,9 @@ function watchRoom(id){
       renderClaimArea();
       if(state?.winner)gameMsg(state.winner===currentUser.uid?"🏆 অভিনন্দন! আপনি এই Carrom ম্যাচ জিতেছেন।":"🏁 ম্যাচ শেষ — প্রতিপক্ষ বিজয়ী হয়েছেন।");
       else if(state?.queenPending && state?.queenOwner===currentUser.uid)
-        gameMsg("👑 লাল Queen নিয়েছেন — নিজের "+playerColor(currentUser.uid,state)+" গুটি দিয়ে Cover করুন");
+        gameMsg("👑 Queen নিয়েছেন — পরবর্তী শটে নিজের "+playerColor(currentUser.uid,state)+" গুটি পকেটে ফেলে Cover করুন");
       else if(state?.queenPending)
-        gameMsg("👑 Queen Cover বাকি — Cover না হলে Queen মাঝখানে ফিরবে");
+        gameMsg("👑 Queen Cover বাকি — মালিকের পরবর্তী শটে Cover না হলে Queen মাঝখানে ফিরবে");
       else if(state?.shotActive && state?.turn===currentUser.uid)gameMsg("🎯 Shot চলছে...");
       else if(state?.turn===currentUser.uid)gameMsg(state?.turnOwnCoinPocketed?"আপনি গুটি নিয়েছেন — আবার স্টিক মারুন":"আপনার টার্ন — সবুজ striker টেনে ছেড়ে দিন");
       else gameMsg("অন্য প্লেয়ারের টার্ন");
