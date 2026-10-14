@@ -66,7 +66,7 @@ button,input,select,textarea{font:inherit}button{border:0;cursor:pointer}.hidden
     <section id="rooms" class="tabsec hidden">
       <div class="card">
         <h3>🎮 Room Manager</h3>
-        <div class="notice">Room প্রথমে Pending Approval থাকবে। Admin Approve করার আগে কোনো Entry Fee কাটবে না এবং User-রা Match Code দেখবে না। Approve সফল হলে নির্বাচিত দুই User-এর Entry Fee কেটে শুধু তাদের My Games-এ Room/Match Code প্রকাশ হবে।</div>
+        <div class="notice">Room প্রথমে Pending Approval থাকবে। মোবাইল নম্বর বা UID দিয়ে ঠিক দুইজন Player খুঁজে নির্বাচন করুন। Admin Approve করার আগে Entry Fee কাটবে না; Approve সফল হলে শুধু নির্বাচিত দুই User-এর My Games-এ Room/Match Code প্রকাশ হবে।</div>
         <form id="roomForm" class="form">
           <div class="field"><label>Game</label><select id="roomGame" required></select></div>
           <div class="field"><label>Room Name</label><input id="roomName" placeholder="যেমন: Ok Room 01" required></div>
@@ -74,8 +74,8 @@ button,input,select,textarea{font:inherit}button{border:0;cursor:pointer}.hidden
           <div class="field"><label>Room Password (ঐচ্ছিক)</label><input id="roomPassword" placeholder="যদি password থাকে"></div>
           <div class="field"><label>💰 Entry Amount (প্রতি User)</label><input id="roomBetAmount" type="number" min="0" step="0.01" value="0" required></div>
           <div class="field"><label>🏆 Winning Amount</label><input id="roomPrizeAmount" type="number" min="0" step="0.01" value="0" required></div>
-          <div class="field"><label>Player 1 (ঐচ্ছিক UID)</label><select id="roomPlayer1"><option value="">যে কেউ Join করতে পারবে</option></select></div>
-          <div class="field"><label>Player 2 (ঐচ্ছিক UID)</label><select id="roomPlayer2"><option value="">যে কেউ Join করতে পারবে</option></select></div>
+          <div class="field"><label>🔎 Player 1 খুঁজুন (মোবাইল / UID / নাম)</label><input id="roomPlayer1Search" placeholder="মোবাইল নম্বর অথবা UID লিখুন" oninput="filterRoomPlayers(1)"><select id="roomPlayer1" required><option value="">Player 1 নির্বাচন করুন</option></select></div>
+          <div class="field"><label>🔎 Player 2 খুঁজুন (মোবাইল / UID / নাম)</label><input id="roomPlayer2Search" placeholder="মোবাইল নম্বর অথবা UID লিখুন" oninput="filterRoomPlayers(2)"><select id="roomPlayer2" required><option value="">Player 2 নির্বাচন করুন</option></select></div>
           <div class="muted">দুই Player নির্বাচন করলে শুধু এই দুই UID-এর User ম্যাচে Join করতে পারবে। Entry/Prize Amount Admin-এর দেওয়া তথ্য হিসেবে সংরক্ষিত হবে।</div>
           <div class="actions"><button class="primary" type="submit">💾 Save Room</button><button class="secondary" type="button" onclick="resetRoomForm()">Clear</button></div>
         </form>
@@ -383,10 +383,11 @@ function renderWithdraws(){
 function renderPurchases(){
  let a=Object.values(purchases).sort((x,y)=>(y.createdAt||0)-(x.createdAt||0));
  $("purchaseList").innerHTML=a.length?a.map(x=>{
-   const deducted=x.status==="approved"?money(x.price||0):money(0);
-   return `<div class="row"><div class="rowhead"><div><b>🎮 ${esc(x.gameName||"Game")}</b><div class="muted">${esc(x.userName||"")} • ${esc(x.userMobile||"")} • Price: ${money(x.price)}</div></div><span class="status ${esc(x.status)}">${esc(x.status||"")}</span></div>
-   <div class="notice">👤 User: <b>${esc(x.userName||"User")}</b> • 📱 ${esc(x.userMobile||"")}<br>💰 Package Price: <b>${money(x.price||0)}</b><br>🎯 Mode: <b>Free Play (৳0)</b><br>💳 Balance Cut: <b>${deducted}</b><br>🔒 Approve/Reject হলে এখানে শুধু সিদ্ধান্ত সংরক্ষণ হবে; Room Manager-এ দুইজন সেট না করা পর্যন্ত User App-এ কোনো কোড/নোটিশ যাবে না.${x.approvedAt?`<br>🕒 Approved: ${new Date(x.approvedAt).toLocaleString("bn-BD")}`:""}</div>
-   ${x.status==="pending"?`<div class="actions"><button onclick="approvePurchase('${esc(x.id)}')">✅ Approve</button><button class="danger" onclick="rejectRequest('purchaseRequests','${esc(x.id)}')">❌ Reject</button></div>`:`<div class="notice">🔒 সিদ্ধান্ত সংরক্ষিত। Package/Room Code User App-এ পাঠানো হয়নি।</div>`}</div>`;
+   const status=String(x.status||"pending").toLowerCase();
+   const statusBn={pending:"অপেক্ষমাণ",approved:"অনুমোদিত",rejected:"বাতিল"}[status]||status;
+   return `<div class="row"><div class="rowhead"><div><b>🎮 ${esc(x.gameName||"Game")}</b><div class="muted">${esc(x.userName||"")} • ${esc(x.userMobile||"")} • Price: ${money(x.price)}</div></div><span class="status ${esc(status)}">${esc(statusBn)}</span></div>
+   <div class="notice">👤 User: <b>${esc(x.userName||"User")}</b> • 📱 ${esc(x.userMobile||"")}<br>🆔 Request ID: <b>${esc(x.id||"")}</b><br>💰 Package Price: <b>${money(x.price||0)}</b><br>🕒 Request: ${new Date(Number(x.createdAt||0)).toLocaleString("bn-BD")}<br>ℹ️ প্রতিটি Buy আলাদা রেকর্ড। Approve/Reject-এর ফল User App → History → Game-এ দেখা যাবে। Room ID নির্ধারণের পরও User আবার Buy করতে পারবেন.${x.approvedAt?`<br>🕒 Approved: ${new Date(x.approvedAt).toLocaleString("bn-BD")}`:""}${x.rejectedAt?`<br>🕒 Rejected: ${new Date(x.rejectedAt).toLocaleString("bn-BD")}`:""}</div>
+   ${status==="pending"?`<div class="actions"><button onclick="approvePurchase('${esc(x.id)}')">✅ Approve</button><button class="danger" onclick="rejectRequest('purchaseRequests','${esc(x.id)}')">❌ Reject</button></div>`:`<div class="notice">${status==="approved"?"✅ অনুমোদিত। Room Manager আলাদাভাবে পরিচালিত হবে।":"❌ বাতিল করা হয়েছে। User আবার Buy করতে পারবেন।"}</div>`}</div>`;
  }).join(""):'<div class="notice">কোনো Game Purchase নেই।</div>';
 }
 function winningClaimScore(x){
@@ -670,6 +671,9 @@ window.confirmReject=async(path,id)=>{
     updates[path+"/"+id+"/rejectNote"]=note;
     updates[path+"/"+id+"/rejectedAt"]=Date.now();
     updates[path+"/"+id+"/rejectedBy"]=auth.currentUser?.uid||"admin";
+    if(path==="purchaseRequests" && x.uid){
+      updates["gameHistory/"+x.uid+"/"+id]={id,requestId:id,recordType:"purchase",gameId:x.gameId||"",gameName:x.gameName||"Carrom",price:Number(x.price||0),status:"rejected",rejectNote:note,createdAt:Number(x.createdAt||Date.now()),updatedAt:Date.now(),rejectedAt:Date.now()};
+    }
 
     await db.ref().update(updates);
 
@@ -688,14 +692,15 @@ window.confirmReject=async(path,id)=>{
 function makeRoomId(){return "GN"+Date.now().toString(36).slice(-5).toUpperCase()+Math.floor(10+Math.random()*90)}
 function generateRoomId(){ const e=$("roomId"); if(e) e.value=makeRoomId(); }
 window.generateRoomId=generateRoomId;
-function fillRoomPlayers(){
- ["roomPlayer1","roomPlayer2"].forEach(id=>{
-   const sel=$(id); if(!sel)return;
-   const old=sel.value;
-   sel.innerHTML='<option value="">যে কেউ Join করতে পারবে</option>'+Object.entries(users||{}).map(([uid,u])=>`<option value="${esc(uid)}">${esc(u.name||u.displayName||"User")} • ${esc(u.mobile||u.phone||"")} • ${esc(uid)}</option>`).join("");
-   if(old&&[...sel.options].some(o=>o.value===old))sel.value=old;
- });
+function filterRoomPlayers(playerNo){
+ const sel=$("roomPlayer"+playerNo),search=$("roomPlayer"+playerNo+"Search");if(!sel)return;
+ const old=sel.value,q=String(search?.value||"").trim().toLowerCase();
+ const matches=Object.entries(users||{}).filter(([uid,u])=>!q||[uid,u.name,u.displayName,u.mobile,u.phone].some(v=>String(v||"").toLowerCase().includes(q)));
+ sel.innerHTML='<option value="">Player '+playerNo+' নির্বাচন করুন</option>'+matches.map(([uid,u])=>`<option value="${esc(uid)}">${esc(u.name||u.displayName||"User")} • ${esc(u.mobile||u.phone||"")} • ${esc(uid)}</option>`).join("");
+ if(old&&[...sel.options].some(o=>o.value===old))sel.value=old;
 }
+window.filterRoomPlayers=filterRoomPlayers;
+function fillRoomPlayers(){filterRoomPlayers(1);filterRoomPlayers(2)}
 function fillRoomGames(){
  fillRoomPlayers();
  const s=$("roomGame"); if(!s)return; const old=s.value;
@@ -723,7 +728,7 @@ window.deleteRoom=async id=>{
     toast("Room deleted");
   }catch(err){console.error(err);toast("❌ Room delete হয়নি: "+(err.message||err));}
 };
-function resetRoomForm(){if($("roomGame"))$("roomGame").selectedIndex=0;if($("roomName"))$("roomName").value="";if($("roomId"))$("roomId").value="";if($("roomPassword"))$("roomPassword").value="";if($("roomBetAmount"))$("roomBetAmount").value="0";if($("roomPrizeAmount"))$("roomPrizeAmount").value="0";if($("roomPlayer1"))$("roomPlayer1").value="";if($("roomPlayer2"))$("roomPlayer2").value="";}
+function resetRoomForm(){if($("roomGame"))$("roomGame").selectedIndex=0;if($("roomName"))$("roomName").value="";if($("roomId"))$("roomId").value="";if($("roomPassword"))$("roomPassword").value="";if($("roomBetAmount"))$("roomBetAmount").value="0";if($("roomPrizeAmount"))$("roomPrizeAmount").value="0";if($("roomPlayer1"))$("roomPlayer1").value="";if($("roomPlayer2"))$("roomPlayer2").value="";if($("roomPlayer1Search"))$("roomPlayer1Search").value="";if($("roomPlayer2Search"))$("roomPlayer2Search").value="";fillRoomPlayers();}
 window.resetRoomForm=resetRoomForm;
 async function createCarromRoomOnServer(roomId,gameId,betAmount=0,winningAmount=0,allowedPlayers=[],status="pendingApproval"){
   const user=auth.currentUser;
@@ -830,8 +835,9 @@ window.confirmPurchase=async id=>{
    updates["purchaseRequests/"+id+"/packageCode"]=null;
    updates["purchaseRequests/"+id+"/roomCode"]=null;
    updates["purchaseRequests/"+id+"/matchCode"]=null;
+   if(x.uid){updates["gameHistory/"+x.uid+"/"+id]={id,requestId:id,recordType:"purchase",gameId:x.gameId||"",gameName:x.gameName||"Carrom",price:Number(x.price||0),status:"approved",createdAt:Number(x.createdAt||now),updatedAt:now,approvedAt:now,approvedBy:auth.currentUser?.uid||"admin"};}
    await db.ref().update(updates);
-   closeModal(); toast("✅ Purchase Approved। কোনো Package/Room Code, Balance পরিবর্তন বা User Notice পাঠানো হয়নি। Room Manager-এ ব্যবস্থা না করা পর্যন্ত User-এর কাছে কোড যাবে না।");
+   closeModal(); toast("✅ Purchase Approved। User-এর History → Game-এ Approved দেখাবে। Room Manager আলাদাভাবে পরিচালিত হবে।");
  }catch(err){
    console.error(err);
    if(btn){btn.disabled=false;btn.textContent="✅ Approve (No Balance Cut)";}
