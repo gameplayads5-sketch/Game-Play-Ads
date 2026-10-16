@@ -186,6 +186,7 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-
 .extrasMenu[open]{display:block}
 .extrasMenu[open]>summary{margin-left:auto;width:max-content}
 .extrasMenu #musicBox{box-shadow:0 8px 24px #0009}
+.menuMatchInfo{display:grid;grid-template-columns:1fr;gap:5px;margin:0 0 8px;padding:8px;background:#101a2b;border:1px solid #395d88;border-radius:10px}.menuMatchInfo .menuRow{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#dcecff}.menuMatchInfo b{color:#fff;font-size:13px}.backBtn{display:block;width:100%;margin:0 0 8px;background:#34465c;border:1px solid #7088a7;padding:8px;font-size:12px}.playerCard .details .detail:nth-child(-n+3){display:none}
 
 </style>
 </head>
@@ -198,13 +199,17 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-
       <div class="roomBox"><div class="roomLabel">Match / Room Code</div><div class="roomCode" id="roomCodeText">—</div><div class="count">🟢 <span id="playerCount">0/2</span> Players</div><div id="turnTimer" aria-live="polite">⏱ ২০s</div>
       <details id="extrasMenu" class="extrasMenu roomMusicMenu"><summary aria-label="গান ও আরও অপশন">⋮ <span>গান / আরও</span></summary>
       <section id="musicBox" class="card" aria-label="MP3 music player" style="margin:5px auto;padding:8px;width:min(94%,560px);background:#21170f;border:1px solid #8b6536;border-radius:12px;color:#ffe7bf;text-align:left">
+      <button id="backButton" type="button" class="backBtn">⬅️ Back / ফিরে যান</button>
+      <div class="menuMatchInfo" aria-label="ম্যাচের তথ্য">
+        <div class="menuRow">🎮 মোড <b id="menuMode">FREE PLAY</b></div>
+        <div class="menuRow">🆔 ম্যাচ <b id="menuMatch">—</b></div>
+        <div class="menuRow">💰 Entry <b id="menuEntry">৳0</b></div>
+      </div>
       <div style="font-weight:800;font-size:12px;margin-bottom:5px">🎵 নিজের MP3 গান চালান</div>
       <input id="mp3Picker" type="file" accept="audio/mpeg,audio/mp3,audio/*" style="width:100%;font-size:11px;margin:2px 0 6px;color:#ffe7bf">
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin:3px 0 5px"><button id="searchMp3Btn" type="button" style="flex:1;min-width:145px;margin:0;background:#2868b2;padding:8px 7px;font-size:11px">🔎 Chrome-এ MP3 গান খুঁজুন</button></div>
-      <input id="mp3UrlInput" type="url" inputmode="url" placeholder="সরাসরি MP3 লিংক এখানে পেস্ট করুন (https://...)" aria-label="MP3 সরাসরি লিংক" style="font-size:11px;padding:8px;margin:2px 0 5px">
-      <button id="playMp3UrlBtn" type="button" style="width:100%;margin:0 0 5px;background:#25804d;padding:8px;font-size:11px">▶ অনলাইন MP3 চালান</button>
+      
       <audio id="mp3Player" controls preload="none" style="display:none;width:100%;height:36px"></audio>
-      <div id="mp3Status" style="font-size:10px;color:#d8c2a2;line-height:1.4">Chrome-এ গান খুঁজে সরাসরি .mp3 ফাইলের লিংক কপি করে উপরের ঘরে পেস্ট করুন। চাইলে মোবাইল থেকে MP3 ফাইলও বেছে নিতে পারবেন। গানটি শুধু আপনার ডিভাইসে চলবে; অন্য খেলোয়াড়ের কাছে যাবে না।</div></section></details>
+      <div id="mp3Status" style="font-size:10px;color:#d8c2a2;line-height:1.4">মোবাইল থেকে ডাউনলোড করা MP3/অডিও ফাইল বেছে নিন। গানটি শুধু আপনার ডিভাইসে চলবে; অন্য খেলোয়াড়ের কাছে যাবে না।</div></section></details>
       </div>
     </div>
 
@@ -368,29 +373,14 @@ function playGameSound(kind){
   notes.forEach((hz,i)=>tone(hz,now+i*.10,.16,.32,kind==='shot'?'triangle':'sine'));
  }catch(e){console.debug('Sound unavailable',e)}
 }
-// Play a locally selected MP3 without uploading it anywhere.
+// Play a locally selected MP3 without uploading it anywhere. Search and URL options removed for simplicity.
 (function setupMp3Player(){
- const picker=document.getElementById('mp3Picker'),player=document.getElementById('mp3Player');
- const searchBtn=document.getElementById('searchMp3Btn'),urlInput=document.getElementById('mp3UrlInput'),playUrlBtn=document.getElementById('playMp3UrlBtn'),status=document.getElementById('mp3Status');
- if(!picker||!player)return;
- let currentUrl=null;
+ const picker=document.getElementById('mp3Picker'),player=document.getElementById('mp3Player'),status=document.getElementById('mp3Status');
+ if(!picker||!player)return; let currentUrl=null;
  const say=t=>{if(status)status.textContent=t;};
- function playSource(src){
-   player.style.display='block';player.pause();player.src=src;player.load();
-   player.play().then(()=>say('🎵 গান চলছে। Player-এর control থেকে Pause/Play ও Volume বদলাতে পারবেন।')).catch(()=>say('▶ গান চালাতে Player-এর Play চাপুন। লিংকটি সরাসরি অডিও ফাইল হতে হবে; ওয়েবপেজ/YouTube লিংক সরাসরি চলবে না।'));
- }
  picker.addEventListener('change',()=>{const file=picker.files&&picker.files[0];if(!file)return;if(!file.type.startsWith('audio/')&&!/\.(mp3|wav|ogg|m4a|aac|opus)$/i.test(file.name)){alert('দয়া করে MP3 বা অডিও ফাইল নির্বাচন করুন।');picker.value='';return;}
-   if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=URL.createObjectURL(file);urlInput.value='';playSource(currentUrl);
- });
- if(searchBtn)searchBtn.addEventListener('click',()=>{
-   const q='free royalty free background music mp3 download';
-   window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank','noopener');
-   say('Google/Chrome-এ ফলাফল খুলেছে। কোনো বৈধ MP3 ফাইলের সরাসরি লিংক কপি করে এখানে পেস্ট করুন, তারপর “অনলাইন MP3 চালান” চাপুন।');
- });
- if(playUrlBtn)playUrlBtn.addEventListener('click',()=>{
-   const raw=(urlInput.value||'').trim();if(!raw){say('আগে Chrome search থেকে সরাসরি MP3 লিংক কপি করে এখানে পেস্ট করুন।');urlInput.focus();return;}
-   try{const u=new URL(raw);if(!/^https?:$/.test(u.protocol))throw new Error('bad protocol');playSource(u.href);}
-   catch(e){say('সঠিক https:// বা http:// MP3 লিংক দিন। Google search ফলাফলের সাধারণ পেজের লিংক নয়—অডিও ফাইলের সরাসরি লিংক লাগবে।');}
+   if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=URL.createObjectURL(file);player.style.display='block';player.pause();player.src=currentUrl;player.load();
+   player.play().then(()=>say('🎵 গান চলছে। Player-এর control থেকে Pause/Play ও Volume বদলাতে পারবেন।')).catch(()=>say('গানটি বেছে নেওয়া হয়েছে। চালাতে Player-এর Play চাপুন।'));
  });
  window.addEventListener('beforeunload',()=>{if(currentUrl)URL.revokeObjectURL(currentUrl);});
 })();
@@ -503,6 +493,12 @@ function renderPlayers(){
     const roomEl=el.querySelector('[data-room]'); if(roomEl)roomEl.textContent=roomId||'—';
     const betEl=el.querySelector('[data-bet]'); if(betEl)betEl.textContent='৳'+bet.toFixed(2);
     const colorEl=el.querySelector('[data-color]'); if(colorEl)colorEl.innerHTML=color==='white'?'<span class="colorDot whiteDot"></span>সাদা':'<span class="colorDot blackDot"></span>কালো';
+    if(index===0){
+      const mm=$('menuMode'), mr=$('menuMatch'), me=$('menuEntry');
+      if(mm)mm.textContent=pkg.packageCode||'FREE PLAY';
+      if(mr)mr.textContent=roomId||'—';
+      if(me)me.textContent='৳'+bet.toFixed(2).replace(/\.00$/,'');
+    }
     let tally=el.querySelector("[data-pocket-count]");
     if(!tally){tally=document.createElement("div");tally.className="detail";tally.innerHTML='<div class="detailLabel">🎯 নিজের গুটি</div><div class="detailValue" data-pocket-count>0 টি</div>';el.querySelector(".details")?.appendChild(tally);tally=tally.querySelector("[data-pocket-count]");}
     if(tally)tally.textContent=String(Number(state?.pocketCounts?.[uid]||0))+" টি";
@@ -1268,6 +1264,11 @@ async function chatSendMessage(){
   }catch(e){chatSetStatus("মেসেজ পাঠানো যায়নি। Rules-এ এই Room-এর chat/messages-এ authenticated member-এর write অনুমতি প্রয়োজন।");console.error(e);}
   finally{chatSending=false;chatSend.disabled=false;}
 }
+const backButton=$('backButton');
+if(backButton)backButton.addEventListener('click',()=>{
+  if(window.history.length>1){window.history.back();}
+  else {window.location.href='../index.html';}
+});
 chatLauncher.addEventListener("click",chatOpen);
 chatClose.addEventListener("click",()=>{chatPanel.classList.remove("open");chatLauncher.setAttribute("aria-expanded","false");});
 chatSend.addEventListener("click",chatSendMessage);
