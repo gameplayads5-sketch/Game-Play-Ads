@@ -1266,8 +1266,8 @@ async function chatSendMessage(){
 }
 const backButton=$('backButton');
 if(backButton)backButton.addEventListener('click',()=>{
-  if(window.history.length>1){window.history.back();}
-  else {window.location.href='../index.html';}
+  // Always return to the Games app homepage, never to the separate User app.
+  window.location.href='./index.html';
 });
 chatLauncher.addEventListener("click",chatOpen);
 chatClose.addEventListener("click",()=>{chatPanel.classList.remove("open");chatLauncher.setAttribute("aria-expanded","false");});
