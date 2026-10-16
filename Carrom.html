@@ -232,7 +232,7 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-
     </div>
     <div class="vs"><span>VS</span></div>
 
-    <div id="scoreSummary"><span id="scoreP1">কালো: ০ পয়েন্ট · ০ গুটি</span><span id="scoreP2">সাদা: ০ পয়েন্ট · ০ গুটি</span></div><div class="boardTitle">🎯 Carrom</div><div class="boardWrap"><div class="boardInner"><canvas id="board" width="800" height="800"></canvas></div></div>
+    <div id="scoreSummary"><span id="scoreP1">কালো: ০ পয়েন্ট · ০ গুটি</span><span id="scoreP2">সাদা: ০ পয়েন্ট · ০ গুটি</span></div><div class="boardTitle">🎯 Carrom</div><div class="boardWrap"><div class="boardInner"><canvas id="board" tabindex="-1" width="800" height="800"></canvas></div></div>
 
     <div class="strikerControl" id="strikerControl">
       <div class="controlLabel">↔️ নিচের খেলোয়াড়ের স্ট্রাইকার ডান-বাম নিয়ন্ত্রণ</div>
@@ -1266,8 +1266,12 @@ async function chatSendMessage(){
 }
 const backButton=$('backButton');
 if(backButton)backButton.addEventListener('click',()=>{
-  // Always return to the Games app homepage, never to the separate User app.
-  window.location.href='./index.html';
+  // Back inside the three-dot menu should close the menu and return to the game,
+  // not navigate to the User App login or reload the page. Keep the MP3 player alive.
+  const menu=$('extrasMenu');
+  if(menu) menu.open=false;
+  const board=$('board');
+  if(board) board.focus({preventScroll:true});
 });
 chatLauncher.addEventListener("click",chatOpen);
 chatClose.addEventListener("click",()=>{chatPanel.classList.remove("open");chatLauncher.setAttribute("aria-expanded","false");});
