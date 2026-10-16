@@ -177,6 +177,16 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-
 #chatSend{margin:0;padding:7px 10px;font-size:11px}
 @media(max-width:600px){#chatLauncher{right:8px;bottom:18px}#chatPanel{bottom:60px}}
 
+
+/* Compact three-dot menu for optional music tools */
+.extrasMenu{position:relative;z-index:30;margin:7px 0 0;display:flex;justify-content:flex-end}.roomMusicMenu{width:100%;justify-content:flex-end}.roomMusicMenu #musicBox{width:min(78vw,320px)!important;max-width:320px;max-height:55vh;overflow:auto}.roomMusicMenu[open]{display:block}.roomMusicMenu[open]>summary{margin-left:auto;width:max-content}
+.extrasMenu>summary{list-style:none;cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid #8b6536;border-radius:10px;background:#21170f;color:#ffe7bf;font-size:21px;font-weight:900;line-height:1.1;box-shadow:0 2px 8px #0005}
+.extrasMenu>summary::-webkit-details-marker{display:none}
+.extrasMenu>summary span{font-size:11px;font-weight:700}
+.extrasMenu[open]{display:block}
+.extrasMenu[open]>summary{margin-left:auto;width:max-content}
+.extrasMenu #musicBox{box-shadow:0 8px 24px #0009}
+
 </style>
 </head>
 <body>
@@ -185,7 +195,17 @@ html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-
   <div id="game">
     <div class="top">
       <div><div class="topTitle">👑 GameNest BD • Carrom</div><div class="topSub">Online Match • Room ID দিয়ে Join করুন</div></div>
-      <div class="roomBox"><div class="roomLabel">Match / Room Code</div><div class="roomCode" id="roomCodeText">—</div><div class="count">🟢 <span id="playerCount">0/2</span> Players</div><div id="turnTimer" aria-live="polite">⏱ ২০s</div></div>
+      <div class="roomBox"><div class="roomLabel">Match / Room Code</div><div class="roomCode" id="roomCodeText">—</div><div class="count">🟢 <span id="playerCount">0/2</span> Players</div><div id="turnTimer" aria-live="polite">⏱ ২০s</div>
+      <details id="extrasMenu" class="extrasMenu roomMusicMenu"><summary aria-label="গান ও আরও অপশন">⋮ <span>গান / আরও</span></summary>
+      <section id="musicBox" class="card" aria-label="MP3 music player" style="margin:5px auto;padding:8px;width:min(94%,560px);background:#21170f;border:1px solid #8b6536;border-radius:12px;color:#ffe7bf;text-align:left">
+      <div style="font-weight:800;font-size:12px;margin-bottom:5px">🎵 নিজের MP3 গান চালান</div>
+      <input id="mp3Picker" type="file" accept="audio/mpeg,audio/mp3,audio/*" style="width:100%;font-size:11px;margin:2px 0 6px;color:#ffe7bf">
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin:3px 0 5px"><button id="searchMp3Btn" type="button" style="flex:1;min-width:145px;margin:0;background:#2868b2;padding:8px 7px;font-size:11px">🔎 Chrome-এ MP3 গান খুঁজুন</button></div>
+      <input id="mp3UrlInput" type="url" inputmode="url" placeholder="সরাসরি MP3 লিংক এখানে পেস্ট করুন (https://...)" aria-label="MP3 সরাসরি লিংক" style="font-size:11px;padding:8px;margin:2px 0 5px">
+      <button id="playMp3UrlBtn" type="button" style="width:100%;margin:0 0 5px;background:#25804d;padding:8px;font-size:11px">▶ অনলাইন MP3 চালান</button>
+      <audio id="mp3Player" controls preload="none" style="display:none;width:100%;height:36px"></audio>
+      <div id="mp3Status" style="font-size:10px;color:#d8c2a2;line-height:1.4">Chrome-এ গান খুঁজে সরাসরি .mp3 ফাইলের লিংক কপি করে উপরের ঘরে পেস্ট করুন। চাইলে মোবাইল থেকে MP3 ফাইলও বেছে নিতে পারবেন। গানটি শুধু আপনার ডিভাইসে চলবে; অন্য খেলোয়াড়ের কাছে যাবে না।</div></section></details>
+      </div>
     </div>
 
     <div class="card matchJoin">
@@ -323,29 +343,57 @@ function gameMsg(t){
   }
 }
 
-// Enhanced WebAudio effects: stronger gain, crisp clock ticks and celebratory WOW fanfare.
+// Improved game audio: bell countdown, realistic wooden striker/coin clack, and optional MP3 player.
 let __audioCtx=null; const __soundSeen={}; let __lastTickKey=""; let __lastImpactAt=0;
 function playGameSound(kind){
  try{
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   __audioCtx=__audioCtx||new AC();if(__audioCtx.state==='suspended')__audioCtx.resume();
   const now=__audioCtx.currentTime;
-  const play=(freq,at,dur,vol,wave='sine',endFreq=null)=>{const o=__audioCtx.createOscillator(),g=__audioCtx.createGain();o.type=wave;o.frequency.setValueAtTime(freq,at);if(endFreq)o.frequency.exponentialRampToValueAtTime(endFreq,at+dur);g.gain.setValueAtTime(0.0001,at);g.gain.exponentialRampToValueAtTime(Math.max(.001,vol),at+.012);g.gain.exponentialRampToValueAtTime(.0001,at+dur);o.connect(g);g.connect(__audioCtx.destination);o.start(at);o.stop(at+dur+.02);};
-  if(kind==='tick'||kind==='alarm'){play(1150,now,.11,.42,'square',760);return;}
+  const tone=(freq,at,dur,vol,wave='sine',endFreq=null)=>{const o=__audioCtx.createOscillator(),g=__audioCtx.createGain();o.type=wave;o.frequency.setValueAtTime(freq,at);if(endFreq)o.frequency.exponentialRampToValueAtTime(endFreq,at+dur);g.gain.setValueAtTime(0.0001,at);g.gain.exponentialRampToValueAtTime(Math.max(.001,vol),at+.006);g.gain.exponentialRampToValueAtTime(.0001,at+dur);o.connect(g);g.connect(__audioCtx.destination);o.start(at);o.stop(at+dur+.025);};
+  if(kind==='tick'||kind==='alarm'||kind==='bell'){
+    // Bell-like double chime with metallic overtones, not a clock tick.
+    tone(1046,now,.42,.28,'sine');tone(1568,now+.005,.34,.18,'sine');tone(2093,now+.012,.25,.09,'sine');
+    tone(784,now+.16,.35,.16,'sine');tone(1175,now+.165,.30,.10,'sine');return;
+  }
   if(kind==='impact'){
-    // Sharp wooden clack for striker/coin contact, throttled by the caller.
-    play(180,now,.075,.62,'triangle',75);
-    play(920,now,.035,.24,'square',420);
-    return;
+    // Short broadband wooden knock + resonant clack, like a striker hitting a carrom coin.
+    const length=Math.floor(__audioCtx.sampleRate*.095),buffer=__audioCtx.createBuffer(1,length,__audioCtx.sampleRate),data=buffer.getChannelData(0);
+    for(let i=0;i<length;i++){const t=i/length;data[i]=(Math.random()*2-1)*Math.pow(1-t,4);}
+    const src=__audioCtx.createBufferSource(),filter=__audioCtx.createBiquadFilter(),gain=__audioCtx.createGain();src.buffer=buffer;filter.type='bandpass';filter.frequency.value=1250;filter.Q.value=.8;gain.gain.setValueAtTime(.42,now);gain.gain.exponentialRampToValueAtTime(.0001,now+.095);src.connect(filter);filter.connect(gain);gain.connect(__audioCtx.destination);src.start(now);
+    tone(245,now,.085,.42,'triangle',95);tone(1150,now+.004,.045,.23,'square',520);tone(620,now+.012,.075,.14,'triangle',260);return;
   }
-  if(kind==='winner'){// bright multi-note WOW fanfare
-    [[523,0],[659,.13],[784,.26],[1047,.40],[1318,.58],[1568,.76]].forEach(([f,t],i)=>play(f,now+t,.30,i>3?.42:.34,'triangle'));
-    play(880,now+.4,.65,.2,'sine',1760);return;
-  }
+  if(kind==='winner'){[[523,0],[659,.13],[784,.26],[1047,.40],[1318,.58],[1568,.76]].forEach(([f,t],i)=>tone(f,now+t,.30,i>3?.42:.34,'triangle'));tone(880,now+.4,.65,.2,'sine',1760);return;}
   const notes=kind==='shot'?[240,360]:kind==='queen'?[660,880,1100]:kind==='foul'?[180,130]:[740,980];
-  notes.forEach((hz,i)=>play(hz,now+i*.10,.16,.32,kind==='shot'?'triangle':'sine'));
+  notes.forEach((hz,i)=>tone(hz,now+i*.10,.16,.32,kind==='shot'?'triangle':'sine'));
  }catch(e){console.debug('Sound unavailable',e)}
 }
+// Play a locally selected MP3 without uploading it anywhere.
+(function setupMp3Player(){
+ const picker=document.getElementById('mp3Picker'),player=document.getElementById('mp3Player');
+ const searchBtn=document.getElementById('searchMp3Btn'),urlInput=document.getElementById('mp3UrlInput'),playUrlBtn=document.getElementById('playMp3UrlBtn'),status=document.getElementById('mp3Status');
+ if(!picker||!player)return;
+ let currentUrl=null;
+ const say=t=>{if(status)status.textContent=t;};
+ function playSource(src){
+   player.style.display='block';player.pause();player.src=src;player.load();
+   player.play().then(()=>say('🎵 গান চলছে। Player-এর control থেকে Pause/Play ও Volume বদলাতে পারবেন।')).catch(()=>say('▶ গান চালাতে Player-এর Play চাপুন। লিংকটি সরাসরি অডিও ফাইল হতে হবে; ওয়েবপেজ/YouTube লিংক সরাসরি চলবে না।'));
+ }
+ picker.addEventListener('change',()=>{const file=picker.files&&picker.files[0];if(!file)return;if(!file.type.startsWith('audio/')&&!/\.(mp3|wav|ogg|m4a|aac|opus)$/i.test(file.name)){alert('দয়া করে MP3 বা অডিও ফাইল নির্বাচন করুন।');picker.value='';return;}
+   if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=URL.createObjectURL(file);urlInput.value='';playSource(currentUrl);
+ });
+ if(searchBtn)searchBtn.addEventListener('click',()=>{
+   const q='free royalty free background music mp3 download';
+   window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank','noopener');
+   say('Google/Chrome-এ ফলাফল খুলেছে। কোনো বৈধ MP3 ফাইলের সরাসরি লিংক কপি করে এখানে পেস্ট করুন, তারপর “অনলাইন MP3 চালান” চাপুন।');
+ });
+ if(playUrlBtn)playUrlBtn.addEventListener('click',()=>{
+   const raw=(urlInput.value||'').trim();if(!raw){say('আগে Chrome search থেকে সরাসরি MP3 লিংক কপি করে এখানে পেস্ট করুন।');urlInput.focus();return;}
+   try{const u=new URL(raw);if(!/^https?:$/.test(u.protocol))throw new Error('bad protocol');playSource(u.href);}
+   catch(e){say('সঠিক https:// বা http:// MP3 লিংক দিন। Google search ফলাফলের সাধারণ পেজের লিংক নয়—অডিও ফাইলের সরাসরি লিংক লাগবে।');}
+ });
+ window.addEventListener('beforeunload',()=>{if(currentUrl)URL.revokeObjectURL(currentUrl);});
+})();
 function enableGameAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(AC){__audioCtx=__audioCtx||new AC();if(__audioCtx.state==='suspended')__audioCtx.resume();}}catch(_){}}
 document.addEventListener('pointerdown',enableGameAudio,{once:true});document.addEventListener('keydown',enableGameAudio,{once:true});
 function initialState(p1){
@@ -776,6 +824,7 @@ function physics(){
        if(c.in)continue;
        if(resolveElastic(s,c,SR,R)){
          const sp=Math.hypot(s.vx,s.vy);
+         if(sp>0.35 && Date.now()-__lastImpactAt>75){__lastImpactAt=Date.now();playGameSound("impact");}
          if(sp<0.15){s.vx*=0.2;s.vy*=0.2}
        }
      }
@@ -1004,7 +1053,7 @@ async function updateTurnTimer(){
   const alarmKey=String(state.turn)+":"+String(state.turnStartedAt);
   if(left<=5 && left>0){
     const tickKey=alarmKey+":"+left;
-    if(__lastTickKey!==tickKey){__lastTickKey=tickKey;playGameSound("tick");}
+    if(__lastTickKey!==tickKey){__lastTickKey=tickKey;playGameSound("bell");}
   } else {__lastTickKey="";}
   if(left===0)await expireTurnIfNeeded();
 }
