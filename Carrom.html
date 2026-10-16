@@ -323,17 +323,25 @@ function gameMsg(t){
   }
 }
 
-// Sound effects (WebAudio; no external audio files required)
-let __audioCtx=null; const __soundSeen={};
+// Enhanced WebAudio effects: stronger gain, crisp clock ticks and celebratory WOW fanfare.
+let __audioCtx=null; const __soundSeen={}; let __lastTickKey="";
 function playGameSound(kind){
  try{
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   __audioCtx=__audioCtx||new AC();if(__audioCtx.state==='suspended')__audioCtx.resume();
   const now=__audioCtx.currentTime;
-  const notes=kind==='alarm'?[880,880,880]:kind==='shot'?[260]:kind==='queen'?[660,880,1100]:kind==='winner'?[523,659,784,1047]:kind==='foul'?[180,130]:[740,980];
-  notes.forEach((hz,i)=>{const o=__audioCtx.createOscillator(),g=__audioCtx.createGain();o.type=kind==='shot'?'triangle':'sine';o.frequency.setValueAtTime(hz,now+i*(kind==='alarm'?.18:.10));g.gain.setValueAtTime(.0001,now+i*(kind==='alarm'?.18:.10));g.gain.exponentialRampToValueAtTime(.16,now+i*(kind==='alarm'?.18:.10)+.015);g.gain.exponentialRampToValueAtTime(.0001,now+i*(kind==='alarm'?.18:.10)+.13);o.connect(g);g.connect(__audioCtx.destination);o.start(now+i*(kind==='alarm'?.18:.10));o.stop(now+i*(kind==='alarm'?.18:.10)+.14);});
+  const play=(freq,at,dur,vol,wave='sine',endFreq=null)=>{const o=__audioCtx.createOscillator(),g=__audioCtx.createGain();o.type=wave;o.frequency.setValueAtTime(freq,at);if(endFreq)o.frequency.exponentialRampToValueAtTime(endFreq,at+dur);g.gain.setValueAtTime(0.0001,at);g.gain.exponentialRampToValueAtTime(Math.max(.001,vol),at+.012);g.gain.exponentialRampToValueAtTime(.0001,at+dur);o.connect(g);g.connect(__audioCtx.destination);o.start(at);o.stop(at+dur+.02);};
+  if(kind==='tick'||kind==='alarm'){play(1150,now,.11,.42,'square',760);return;}
+  if(kind==='winner'){// bright multi-note WOW fanfare
+    [[523,0],[659,.13],[784,.26],[1047,.40],[1318,.58],[1568,.76]].forEach(([f,t],i)=>play(f,now+t,.30,i>3?.42:.34,'triangle'));
+    play(880,now+.4,.65,.2,'sine',1760);return;
+  }
+  const notes=kind==='shot'?[240,360]:kind==='queen'?[660,880,1100]:kind==='foul'?[180,130]:[740,980];
+  notes.forEach((hz,i)=>play(hz,now+i*.10,.16,.32,kind==='shot'?'triangle':'sine'));
  }catch(e){console.debug('Sound unavailable',e)}
 }
+function enableGameAudio(){try{const AC=window.AudioContext||window.webkitAudioContext;if(AC){__audioCtx=__audioCtx||new AC();if(__audioCtx.state==='suspended')__audioCtx.resume();}}catch(_){}}
+document.addEventListener('pointerdown',enableGameAudio,{once:true});document.addEventListener('keydown',enableGameAudio,{once:true});
 function initialState(p1){
  const coins=[{id:"q",x:400,y:400,c:"red",in:false}];
  let n=0;
@@ -722,7 +730,7 @@ function pocketCoin(c){
   }
 }
 function anyPieceMoving(){
-  if(Math.abs(state.striker.vx)>0.05||Math.abs(state.striker.vy)>0.05)return true;
+  if(Math.abs(state.striker.vx)>0.08||Math.abs(state.striker.vy)>0.08)return true;
   return (state.coins||[]).some(c=>!c.in && (Math.abs(c.vx)>0.05||Math.abs(c.vy)>0.05));
 }
 
@@ -982,7 +990,10 @@ async function updateTurnTimer(){
   const left=Math.max(0,20-Math.floor((Date.now()-Number(state.turnStartedAt))/1000));
   el.textContent="⏱ "+left+"s";
   const alarmKey=String(state.turn)+":"+String(state.turnStartedAt);
-  if(left<=5 && left>0 && __soundSeen.alarm!==alarmKey){__soundSeen.alarm=alarmKey;playGameSound("alarm");}
+  if(left<=5 && left>0){
+    const tickKey=alarmKey+":"+left;
+    if(__lastTickKey!==tickKey){__lastTickKey=tickKey;playGameSound("tick");}
+  } else {__lastTickKey="";}
   if(left===0)await expireTurnIfNeeded();
 }
 setInterval(()=>{updateTurnTimer().catch(console.error);},250);
@@ -1180,7 +1191,7 @@ function chatStartRoomListener(){
     const val=snap.val()||{};
     const items=Object.entries(val).map(([id,m])=>({...m,id})).sort((a,b)=>(a.time||0)-(b.time||0)).slice(-200);
     chatRenderMessages(items);chatSetStatus("Room "+roomId+" · দুই খেলোয়াড়ের চ্যাট");
-  },err=>{chatSetStatus("চ্যাটে সমস্যা: Firebase Database Rules-এ carromRooms/RoomID/chat অনুমতি পরীক্ষা করুন।");console.error(err);});
+  },err=>{chatSetStatus("চ্যাট সংযোগ ব্যর্থ। Firebase Rules-এ carromRooms/$roomId/chat/messages-এর read/write অনুমতি দিন এবং একই Room-এ দুই UID member আছে কি না দেখুন।");console.error(err);});
 }
 async function chatSendMessage(){
   const text=chatText.value.trim();
@@ -1193,7 +1204,7 @@ async function chatSendMessage(){
     const messageRef=push(ref(carromDb,path));
     await set(messageRef,{from:currentUser.uid,text:text.slice(0,1000),time:Date.now()});
     chatText.value="";chatText.focus();
-  }catch(e){chatSetStatus("মেসেজ পাঠানো যায়নি। Firebase Database Rules-এ room chat অনুমতি পরীক্ষা করুন।");console.error(e);}
+  }catch(e){chatSetStatus("মেসেজ পাঠানো যায়নি। Rules-এ এই Room-এর chat/messages-এ authenticated member-এর write অনুমতি প্রয়োজন।");console.error(e);}
   finally{chatSending=false;chatSend.disabled=false;}
 }
 chatLauncher.addEventListener("click",chatOpen);
