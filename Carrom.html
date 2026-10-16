@@ -324,7 +324,7 @@ function gameMsg(t){
 }
 
 // Enhanced WebAudio effects: stronger gain, crisp clock ticks and celebratory WOW fanfare.
-let __audioCtx=null; const __soundSeen={}; let __lastTickKey="";
+let __audioCtx=null; const __soundSeen={}; let __lastTickKey=""; let __lastImpactAt=0;
 function playGameSound(kind){
  try{
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
@@ -332,6 +332,12 @@ function playGameSound(kind){
   const now=__audioCtx.currentTime;
   const play=(freq,at,dur,vol,wave='sine',endFreq=null)=>{const o=__audioCtx.createOscillator(),g=__audioCtx.createGain();o.type=wave;o.frequency.setValueAtTime(freq,at);if(endFreq)o.frequency.exponentialRampToValueAtTime(endFreq,at+dur);g.gain.setValueAtTime(0.0001,at);g.gain.exponentialRampToValueAtTime(Math.max(.001,vol),at+.012);g.gain.exponentialRampToValueAtTime(.0001,at+dur);o.connect(g);g.connect(__audioCtx.destination);o.start(at);o.stop(at+dur+.02);};
   if(kind==='tick'||kind==='alarm'){play(1150,now,.11,.42,'square',760);return;}
+  if(kind==='impact'){
+    // Sharp wooden clack for striker/coin contact, throttled by the caller.
+    play(180,now,.075,.62,'triangle',75);
+    play(920,now,.035,.24,'square',420);
+    return;
+  }
   if(kind==='winner'){// bright multi-note WOW fanfare
     [[523,0],[659,.13],[784,.26],[1047,.40],[1318,.58],[1568,.76]].forEach(([f,t],i)=>play(f,now+t,.30,i>3?.42:.34,'triangle'));
     play(880,now+.4,.65,.2,'sine',1760);return;
@@ -394,6 +400,7 @@ function ensureGameMeta(st){
   if(st.turnOwnCoinPocketed===undefined)st.turnOwnCoinPocketed=false;
   if(st.shotOwner===undefined)st.shotOwner=null;
   if(st.shotActive===undefined)st.shotActive=false;
+   if(st.contactMade===undefined)st.contactMade=false;
 
   // পুরোনো Room-এর গুটিগুলোতে velocity না থাকলে যোগ করি।
   for(const c of (st.coins||[])){
@@ -602,7 +609,7 @@ board.addEventListener("pointerup",e=>{
  const s=state.striker,dx=dragStartX-ax,dy=dragStartY-ay,len=Math.hypot(dx,dy);
  if(len<8){draw();return;}
  const power=Math.min(34,Math.max(5,len/5));
- state.turnOwnCoinPocketed=false;state.shotOwner=currentUser.uid;s.vx=dx/len*power;s.vy=dy/len*power;state.shotActive=true;
+ state.turnOwnCoinPocketed=false;state.contactMade=false;state.shotOwner=currentUser.uid;s.vx=dx/len*power;s.vy=dy/len*power;state.shotActive=true;
 state.foulPenaltyApplied=false;
 playGameSound("shot");
  draw();saveRoomState().catch(err=>gameMsg(dbError(err)));
@@ -986,6 +993,11 @@ async function expireTurnIfNeeded(){
 async function updateTurnTimer(){
   const el=$("turnTimer");if(!el)return;
   if(!state||state.winner||!state.turn){el.textContent="⏱ ২০s";return;}
+  if(state.shotActive){
+    el.textContent=state.contactMade?"🔊 গুটিতে লেগেছে":"🎯 শট চলছে";
+    __lastTickKey="";
+    return;
+  }
   if(!state.turnStartedAt){el.textContent="⏱ চাল শুরু";return;}
   const left=Math.max(0,20-Math.floor((Date.now()-Number(state.turnStartedAt))/1000));
   el.textContent="⏱ "+left+"s";
